@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Companion",
+    "slug": "companion-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "companion",
+    "backgroundColor": "#0D0B08",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0B08"
+    },
+    "updates": {
+      "enabled": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D0B08"
+      },
+      "package": "com.companion.app",
+      "usesCleartextTraffic": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-system-ui",
+        {
+          "userInterfaceStyle": "dark"
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "76613874-27ae-47ee-9e58-b50a531ccfac"
+      }
+    }
+  }
+}

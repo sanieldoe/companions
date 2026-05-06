@@ -1,0 +1,67 @@
+name: Bug report
+description: Report a reproducible problem in Companions
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please include enough detail for someone else to reproduce it.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Briefly describe the bug
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps, commands, prompts, or taps
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Click ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / screenshots
+      render: shell
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - server
+        - app
+        - web
+        - setup wizard
+        - auth
+        - docs
+        - install script
+        - release / CI
+  - type: input
+    id: version
+    attributes:
+      label: Commit / version
+      placeholder: main, v0.1.0, commit SHA, etc.
+  - type: input
+    id: os
+    attributes:
+      label: Host OS
+      placeholder: macOS 15, Ubuntu 24.04, Android 15, etc.

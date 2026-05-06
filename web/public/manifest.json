@@ -1,0 +1,6 @@
+{
+  "name": "Companion", "short_name": "Companion",
+  "background_color": "#0D0B08", "theme_color": "#0D0B08",
+  "display": "standalone", "orientation": "portrait", "start_url": "/",
+  "icons": [{ "src": "/icon.png", "type": "image/png", "sizes": "192x192" }]
+}

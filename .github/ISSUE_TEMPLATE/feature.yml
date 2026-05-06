@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose an improvement to Companions
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem you're trying to solve, not just the solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      placeholder: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: What would you like Companions to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - server
+        - app
+        - web
+        - setup wizard
+        - auth
+        - docs
+        - install script
+        - release / CI
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

@@ -1,0 +1,62 @@
+name: Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install app deps
+        working-directory: app
+        run: npm ci
+
+      - name: Setup Expo + EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build preview APK
+        working-directory: app
+        run: eas build --platform android --profile preview --non-interactive --wait --json > ../eas-build.json
+
+      - name: Download artifact
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const builds = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
+          const build = Array.isArray(builds) ? builds[0] : builds;
+          const url = build?.artifacts?.buildUrl;
+          if (!url) {
+            console.error('No build artifact URL found in eas-build.json');
+            process.exit(1);
+          }
+          fs.writeFileSync('artifact-url.txt', url + '\n');
+          NODE
+          curl -L "$(cat artifact-url.txt)" -o "companions-android-${GITHUB_REF_NAME}.apk"
+          cp "companions-android-${GITHUB_REF_NAME}.apk" companions-android.apk
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            companions-android-${{ github.ref_name }}.apk
+            companions-android.apk
+          generate_release_notes: true

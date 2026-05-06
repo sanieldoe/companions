@@ -1,0 +1,27 @@
+{
+  "personas": {
+    "mentor": {
+      "displayName": "Mentor",
+      "emoji": "🐸",
+      "slot": 0
+    },
+    "shapeshifter": {
+      "displayName": "Shapeshifter",
+      "emoji": "🦊",
+      "slot": 1
+    },
+    "keeper": {
+      "displayName": "Keeper",
+      "emoji": "🐝",
+      "slot": 2
+    },
+    "tracker": {
+      "displayName": "Tracker",
+      "emoji": "🐦",
+      "slot": 3
+    }
+  },
+  "vaultPath": "~/companions-vault",
+  "publicHost": "my-machine.tailnet-1234.ts.net",
+  "port": 3000
+}

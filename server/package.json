@@ -1,0 +1,43 @@
+{
+  "name": "companion-server",
+  "version": "1.0.0",
+  "description": "Personal AI companion WebSocket server",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "setup": "tsx src/setup.ts",
+    "build": "tsc",
+    "start": "tsc && node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "token:issue": "tsx ../scripts/token-issue.ts",
+    "token:revoke": "tsx ../scripts/token-revoke.ts",
+    "token:list": "tsx ../scripts/token-list.ts",
+    "token:rotate-all": "tsx ../scripts/token-rotate-all.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "@huggingface/transformers": "^4.2.0",
+    "@lancedb/lancedb": "^0.27.2",
+    "@mariozechner/pi-coding-agent": "^0.70.5",
+    "@types/node-cron": "^3.0.11",
+    "@types/qrcode-terminal": "^0.12.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^171.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.1",
+    "qrcode-terminal": "^0.12.0",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.2"
+  }
+}
