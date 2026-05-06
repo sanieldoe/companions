@@ -22,9 +22,11 @@ Most AI tools give you one generic chatbot. Companions gives you four agents bui
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.png" alt="Companions — live" width="320">
+  <img src="docs/screenshots/hero.png" alt="Companions — Hive vault" width="220">
   &nbsp;
-  <img src="docs/screenshots/tab-lenda.png" alt="Companions — Tracker tab" width="320">
+  <img src="docs/screenshots/tab-lenda.png" alt="Companions — Tracker" width="220">
+  &nbsp;
+  <img src="docs/screenshots/tab-ruse.png" alt="Companions — Shapeshifter canvas" width="220">
 </p>
 
 ---
@@ -32,11 +34,7 @@ Most AI tools give you one generic chatbot. Companions gives you four agents bui
 ## The four agents
 
 <p align="center">
-  <img src="docs/screenshots/four-agents.svg" alt="All four Companions agent roles" width="700">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/four-agents.png" alt="All four Companions agent tabs (live)" width="480">
+  <img src="docs/screenshots/four-agents.png" alt="The four Companions agents" width="360">
 </p>
 
 ### Tracker — The Monk Journal
@@ -86,14 +84,6 @@ vault/
 ```
 
 Plain markdown files on disk. No database, no lock-in. Open any file in any editor.
-
-<p align="center">
-  <img src="docs/screenshots/vault-overview.svg" alt="Companions vault structure" width="700">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/vault-overview.png" alt="Companions vault directory (live)" width="560">
-</p>
 
 A fresh setup creates:
 
