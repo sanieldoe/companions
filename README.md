@@ -34,8 +34,20 @@ Most AI tools give you one generic chatbot. Companions gives you four agents bui
 ## The four agents
 
 <p align="center">
-  <img src="docs/screenshots/four-agents.png" alt="The four Companions agents" width="360">
+  <img src="docs/screenshots/four-agents.png" alt="The four Companions agents" width="320">
 </p>
+
+Each agent ships with a default name, emoji, and role — but everything is customisable. During setup you rename them, pick new emoji, and tailor their persona to suit how you work. The four slots are intentional; the identities are yours.
+
+---
+
+<table>
+<tr>
+<td width="38%" valign="top">
+<img src="docs/screenshots/tab-lenda.png" alt="Tracker tab" width="100%">
+</td>
+<td width="4%"></td>
+<td valign="top">
 
 ### Tracker — The Monk Journal
 
@@ -45,6 +57,16 @@ Inspired by structured monk-style journalling, Tracker gives you a daily rhythm 
 
 > *What did I actually do today? What's worth carrying forward? What do I need to let go of?*
 
+</td>
+</tr>
+<tr><td colspan="3"><br></td></tr>
+<tr>
+<td valign="top">
+<img src="docs/screenshots/tab-saniel.png" alt="Mentor tab" width="100%">
+</td>
+<td></td>
+<td valign="top">
+
 ### Mentor — Step by Step
 
 The best thinking rarely happens fast. Mentor is designed to slow you down.
@@ -52,6 +74,16 @@ The best thinking rarely happens fast. Mentor is designed to slow you down.
 Instead of handing you an answer, Mentor walks beside you — asking the next right question, pointing out what you might have missed, and building understanding one step at a time. Use it for hard problems, learning something new, debugging, or any conversation worth having carefully.
 
 > *Don't skip ahead. Let's work through this properly.*
+
+</td>
+</tr>
+<tr><td colspan="3"><br></td></tr>
+<tr>
+<td valign="top">
+<img src="docs/screenshots/tab-ruse.png" alt="Shapeshifter tab" width="100%">
+</td>
+<td></td>
+<td valign="top">
 
 ### Shapeshifter — The Limitless Canvas
 
@@ -61,6 +93,16 @@ Brainstorm without structure. Draft without constraints. Generate, remix, break 
 
 > *What if we tried it this way instead?*
 
+</td>
+</tr>
+<tr><td colspan="3"><br></td></tr>
+<tr>
+<td valign="top">
+<img src="docs/screenshots/tab-hive.png" alt="Keeper tab" width="100%">
+</td>
+<td></td>
+<td valign="top">
+
 ### Keeper — The Personal Wiki
 
 Inspired by [Andrej Karpathy's approach to personal knowledge](https://karpathy.ai), Keeper turns your vault into a living, interconnected record of what you know.
@@ -68,6 +110,10 @@ Inspired by [Andrej Karpathy's approach to personal knowledge](https://karpathy.
 Every note you share, every idea you drop in, gets woven into a linked wiki — cleaned up, cross-referenced, and retrievable. Keeper is the agent that remembers so you don't have to, and surfaces the right context when you need it.
 
 > *You wrote about this six months ago. Want me to bring it in?*
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -256,6 +302,7 @@ docs/       Networking, sync, self-hosting, extension notes
 
 ## Acknowledgements
 
+- **Pi Coding Agent** — the core agent engine powering Companions
 - [Andrej Karpathy](https://karpathy.ai) — inspiration for the Keeper wiki model
 - [@clack/prompts](https://github.com/bombshell-dev/clack) — TUI setup wizard
 - [Expo / EAS](https://expo.dev/) — Android build and distribution
