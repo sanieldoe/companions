@@ -6,6 +6,8 @@ Companions is a self-hosted, four-tab AI agent system for organisation, creativi
 
 **Current scope:** single owner, multiple devices, Android + web, bring your own model.
 
+![Companions hero graphic](docs/screenshots/hero.svg)
+
 ---
 
 ## What it is
@@ -34,6 +36,8 @@ The project includes:
 | **Tracker** | Planner | Calendar, scheduling, tasks, reminders |
 
 These four personas are intentional. You can rename them and choose new emoji during setup, but the core project ships with exactly four slots.
+
+![Four Companions agents](docs/screenshots/four-agents.svg)
 
 See `docs/extending-personas.md` if you want to fork the project and add a fifth.
 
@@ -91,6 +95,8 @@ A fresh setup creates:
 ```
 
 Companions does **not** lock your data into a database format. These are plain files on disk.
+
+![Vault overview graphic](docs/screenshots/vault-overview.svg)
 
 ---
 

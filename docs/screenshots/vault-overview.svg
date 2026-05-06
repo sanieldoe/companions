@@ -1,0 +1,75 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="paper" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="faded">
+        <feFuncA type="table" tableValues="0 0.03"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#8C7B5A" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="900" rx="30" fill="#F6F0E4"/>
+  <rect width="1400" height="900" rx="30" fill="#000" filter="url(#paper)" opacity="0.9"/>
+
+  <text x="80" y="112" fill="#2F241D" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="800">A plain-file vault</text>
+  <text x="80" y="156" fill="#75685B" font-family="Inter, Arial, sans-serif" font-size="22">The same shape language, but explaining the folder model on disk.</text>
+
+  <g opacity="0.95">
+    <path d="M700 168L912 318V618L700 768L488 618V318L700 168Z" fill="#F2CC62"/>
+    <rect x="456" y="306" width="164" height="164" rx="12" fill="#4A8AC8"/>
+    <path d="M748 246L870 532H626L748 246Z" fill="#DF6949"/>
+    <circle cx="650" cy="606" r="170" fill="#85C65E"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="106" y="666" width="1188" height="150" rx="30" fill="#FBF6ED"/>
+  </g>
+  <text x="142" y="728" fill="#2F241D" font-family="SFMono-Regular, Menlo, monospace" font-size="22">vault/</text>
+  <text x="248" y="728" fill="#4A8AC8" font-family="SFMono-Regular, Menlo, monospace" font-size="20">raw/</text>
+  <text x="340" y="728" fill="#6C635A" font-family="Inter, Arial, sans-serif" font-size="18">quick captures</text>
+  <text x="486" y="728" fill="#DF6949" font-family="SFMono-Regular, Menlo, monospace" font-size="20">wiki/</text>
+  <text x="582" y="728" fill="#6C635A" font-family="Inter, Arial, sans-serif" font-size="18">knowledge pages</text>
+  <text x="772" y="728" fill="#85C65E" font-family="SFMono-Regular, Menlo, monospace" font-size="20">journal/</text>
+  <text x="900" y="728" fill="#6C635A" font-family="Inter, Arial, sans-serif" font-size="18">dated notes</text>
+  <text x="1040" y="728" fill="#C99B34" font-family="SFMono-Regular, Menlo, monospace" font-size="20">projects/</text>
+  <text x="1188" y="728" fill="#6C635A" font-family="Inter, Arial, sans-serif" font-size="18">workspaces</text>
+
+  <g filter="url(#shadow)">
+    <rect x="80" y="228" width="260" height="238" rx="28" fill="#FBF6ED"/>
+    <rect x="390" y="228" width="260" height="238" rx="28" fill="#FBF6ED"/>
+    <rect x="750" y="228" width="260" height="238" rx="28" fill="#FBF6ED"/>
+    <rect x="1060" y="228" width="260" height="238" rx="28" fill="#FBF6ED"/>
+  </g>
+
+  <g>
+    <rect x="112" y="260" width="72" height="72" rx="10" fill="#4A8AC8"/>
+    <text x="112" y="372" fill="#2F241D" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">raw/</text>
+    <text x="112" y="404" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">Dump zone for quick notes,</text>
+    <text x="112" y="430" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">clippings, and transcripts.</text>
+  </g>
+
+  <g>
+    <path d="M469 258L523 352H415L469 258Z" fill="#DF6949"/>
+    <text x="422" y="372" fill="#2F241D" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">wiki/</text>
+    <text x="422" y="404" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">Cleaned-up knowledge with</text>
+    <text x="422" y="430" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">links, summaries, and structure.</text>
+  </g>
+
+  <g>
+    <circle cx="830" cy="298" r="56" fill="#85C65E"/>
+    <text x="782" y="372" fill="#2F241D" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">journal/</text>
+    <text x="782" y="404" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">Dated entries, reflections,</text>
+    <text x="782" y="430" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">and timestamped notes.</text>
+  </g>
+
+  <g>
+    <path d="M1160 250L1224 296V382L1160 428L1096 382V296L1160 250Z" fill="#F2CC62"/>
+    <text x="1092" y="372" fill="#2F241D" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">projects/</text>
+    <text x="1092" y="404" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">Plans, long-form work, and</text>
+    <text x="1092" y="430" fill="#6B6259" font-family="Inter, Arial, sans-serif" font-size="17">structured project files.</text>
+  </g>
+</svg>
