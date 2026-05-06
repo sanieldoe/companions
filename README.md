@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/screenshots/logo.png" alt="Companions logo" width="160">
+</p>
+
 # Companions
 
 > Four agents. One vault. Your box.
@@ -11,7 +15,11 @@ Companions is a self-hosted, four-tab AI agent system for organisation, creativi
 
 **Current scope:** single owner, multiple devices, Android + web, bring your own model.
 
-![Companions hero graphic](docs/screenshots/hero.svg)
+<p align="center">
+  <img src="docs/screenshots/hero.png" alt="Companions — Hive vault browser" width="320">
+  &nbsp;
+  <img src="docs/screenshots/tab-lenda.png" alt="Companions — Lenda planner tab" width="320">
+</p>
 
 ---
 
@@ -42,7 +50,9 @@ The project includes:
 
 These four personas are intentional. You can rename them and choose new emoji during setup, but the core project ships with exactly four slots.
 
-![Four Companions agents](docs/screenshots/four-agents.svg)
+<p align="center">
+  <img src="docs/screenshots/four-agents.png" alt="All four Companions agent tabs" width="480">
+</p>
 
 See `docs/extending-personas.md` if you want to fork the project and add a fifth.
 
@@ -108,7 +118,9 @@ A fresh setup creates:
 
 Companions does **not** lock your data into a database format. These are plain files on disk.
 
-![Vault overview graphic](docs/screenshots/vault-overview.svg)
+<p align="center">
+  <img src="docs/screenshots/vault-overview.png" alt="Companions vault directory structure" width="560">
+</p>
 
 ---
 
