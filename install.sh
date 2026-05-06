@@ -3,7 +3,7 @@ set -euo pipefail
 trap 'echo "Install failed at line $LINENO" >&2; exit 1' ERR
 
 VERSION="0.1.0"
-REPO_URL="${COMPANIONS_REPO_URL:-https://github.com/sandoe/companions.git}"
+REPO_URL="${COMPANIONS_REPO_URL:-https://github.com/sanieldoe/companions.git}"
 INSTALL_DIR="${COMPANIONS_INSTALL_DIR:-$HOME/companions}"
 BRANCH="${COMPANIONS_BRANCH:-main}"
 SKIP_SETUP="${COMPANIONS_SKIP_SETUP:-0}"

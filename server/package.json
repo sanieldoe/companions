@@ -10,6 +10,7 @@
     "start": "tsc && node dist/index.js",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
     "token:issue": "tsx ../scripts/token-issue.ts",
     "token:revoke": "tsx ../scripts/token-revoke.ts",
     "token:list": "tsx ../scripts/token-list.ts",

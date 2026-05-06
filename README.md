@@ -2,6 +2,11 @@
 
 > Four agents. One vault. Your box.
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node ≥ 20](https://img.shields.io/badge/node-%E2%89%A520-brightgreen.svg)](https://nodejs.org/)
+[![Latest release](https://img.shields.io/github/v/release/sanieldoe/companions)](https://github.com/sanieldoe/companions/releases/latest)
+[![BYO LLM](https://img.shields.io/badge/LLM-Anthropic%20%7C%20OpenAI%20%7C%20Ollama-orange.svg)](#llm-support)
+
 Companions is a self-hosted, four-tab AI agent system for organisation, creativity, and reflection. Instead of a single generic chatbot, you get four specialised companions that share one local markdown vault on disk.
 
 **Current scope:** single owner, multiple devices, Android + web, bring your own model.
@@ -45,10 +50,27 @@ See `docs/extending-personas.md` if you want to fork the project and add a fifth
 
 ## Quick start
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/sanieldoe/companions/main/install.sh | bash
+```
+
+The script checks for Node ≥ 20, clones the repo into `~/companions/`, installs dependencies, and drops you into the setup wizard.
+
+<details>
+<summary>What this does</summary>
+
+1. Detects your OS (macOS / Linux; Windows users: use WSL).
+2. Checks `node`, `git`, `npm` — prints install instructions if any are missing.
+3. Clones `https://github.com/sanieldoe/companions.git` into `~/companions/` (or git-pulls if it already exists).
+4. Runs `npm install` in `server/`, `app/`, and `web/`.
+5. Launches `npm run setup` — an interactive TUI that configures your LLM provider, vault location, agent names/emoji, port, and Tailscale pairing.
+
+</details>
+
 ### Manual install
 
 ```bash
-git clone https://github.com/sandoe/companions.git
+git clone https://github.com/sanieldoe/companions.git
 cd companions/server
 npm install
 npm run setup
@@ -59,16 +81,6 @@ Then open:
 
 - web app: `http://localhost:3000/app`
 - mobile app: `cd ../app && npx expo start`
-
-### Installer script
-
-The repo also includes `install.sh`:
-
-```bash
-./install.sh
-```
-
-It checks prerequisites, clones or updates the repo, installs dependencies in `server/`, `app/`, and `web/`, then hands off to `npm run setup`.
 
 ---
 
@@ -108,11 +120,11 @@ There is **no default provider** and no bundled model. Setup requires you to con
 
 Supported setup paths today:
 
-| Provider | Status | Example |
-|---|---|---|
-| Anthropic | supported | `anthropic:claude-sonnet-4-6` |
-| OpenAI | supported | `openai:gpt-4o` |
-| OpenAI-compatible / local | supported | `openai-compat:http://localhost:11434/v1:llama3.2` |
+| Provider | Chat | Tool use | Streaming | Example |
+|---|:---:|:---:|:---:|---|
+| Anthropic | ✅ | ✅ | ✅ | `anthropic:claude-sonnet-4-6` |
+| OpenAI | ✅ | ✅ | ✅ | `openai:gpt-4o` |
+| OpenAI-compatible / local | ✅ | ⚠️ model-dependent | ✅ | `openai-compat:http://localhost:11434/v1:llama3.2` |
 
 Example `server/.env` values:
 
@@ -136,9 +148,16 @@ See `server/.env.example` for the full template.
 
 ## Mobile + web
 
-- **Android:** supported via Expo / EAS APK workflow
-- **iOS:** use the web app for now
+- **Android:** [Download the latest APK](https://github.com/sanieldoe/companions/releases/latest/download/companions-android.apk)
+- **iOS:** use the web app for now (no TestFlight / App Store in v1)
 - **Web:** supported at `/app`
+
+### Sideloading the Android APK
+
+1. On your Android device, open **Settings → Apps → Special app access → Install unknown apps** and allow installs from your browser (or Files app).
+2. Download `companions-android.apk` from the link above.
+3. Tap the downloaded file and follow the install prompt.
+4. On first launch, scan the QR code printed by `npm run setup`, or enter your server URL and access token manually.
 
 The mobile app pairs to your server using:
 
@@ -249,6 +268,25 @@ See:
 
 ---
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, branch conventions, and commit style.
+
+Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating.
+
+To report a security issue, follow [SECURITY.md](SECURITY.md).
+
+---
+
+## Acknowledgements
+
+- [@clack/prompts](https://github.com/bombshell-dev/clack) — TUI setup wizard
+- [Expo / EAS](https://expo.dev/) — Android build and distribution
+- [Tailscale](https://tailscale.com/) — recommended remote access tunnel
+- [LanceDB](https://lancedb.github.io/lancedb/) — local vector search for knowledge retrieval
+
+---
+
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [LICENSE](LICENSE).
