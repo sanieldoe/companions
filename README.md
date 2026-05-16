@@ -54,7 +54,7 @@ Each ships with a default name, emoji, and character. Rename them and tune the p
 - **Calendar** — pulls in Google Calendar events so the day has context and shape
 - **To-dos** — p1 / p2 / p3 priorities; incomplete tasks carry forward automatically
 - **Rhythms** — recurring commitments across any cadence: daily, weekly, monthly, yearly
-- **Haiku** — three lines written fresh each morning as a quiet anchor for the day
+- **Haiku** — three lines written fresh every evening as a reflective practice for the day
 
 </td>
 </tr>
