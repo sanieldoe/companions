@@ -36,7 +36,9 @@ Each ships with a default name and character. Rename them, pick an emoji, and tu
 Patient, ADHD-aware. Slows you down, asks the right question, gives you one next action. Never overwhelms. Use it when understanding matters more than speed.
 
 ### 🦊 Shapeshifter — Bold fast creator
-Infers your intent and acts. Canvas by default — 10 composable block types for building plans, drafts, and prototypes. It already built it before Mentor finished the first question.
+Infers your intent and acts. It already built it before Mentor finished the first question.
+
+Canvas is Shapeshifter's default output — not a chat reply, but a persistent, structured workspace that lives in your vault. Each canvas is composed from 10 block types: rich text, interactive checklists, coloured callout notes, code blocks, links, file tabs, buttons, text inputs, section dividers, and a sandboxed HTML block that can render arbitrary layouts, charts, or custom UI. You ask for a plan; you get a tappable, editable canvas. You ask for a checklist; the items actually check off. The result stays in your vault and every other agent can read it.
 
 ### 🐝 Keeper — Personal wiki
 Ingests raw notes and organises them into a linked, searchable knowledge base uinspired by Karpathy and Johnny Decimal structure. Surfaces forgotten knowledge — the stuff you wrote six months ago that's relevant right now.
