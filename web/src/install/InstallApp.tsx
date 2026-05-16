@@ -29,6 +29,7 @@ interface WizardState {
   authSecret: string;
   model: ModelState;
   personas: Persona[];
+  calendar: { clientId: string; clientSecret: string; skip: boolean };
 }
 
 interface TailscaleStatus {
@@ -146,7 +147,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 // ---- Step 0: Welcome ----
 function StepWelcome({ onNext }: { onNext: () => void }) {
-  const steps = ['Tailscale', 'Vault', 'Your Name', 'Secret', 'Model / Subscription', 'Personas'];
+  const steps = ['Tailscale', 'Vault', 'Your Name', 'Secret', 'Model / Subscription', 'Personas', 'Calendar'];
   return (
     <div style={{ textAlign: 'center' }}>
       <h1 style={{ color: TEXT, fontSize: '2rem', fontWeight: 700, marginBottom: '0.75rem' }}>
@@ -662,12 +663,90 @@ function StepPersonas({ personas, onChange, onNext }: {
   );
 }
 
-// ---- Step 7: Applying ----
+// ---- Step 7: Calendar ----
+function StepCalendar({
+  calendar, onChange, onNext, onBack,
+}: {
+  calendar: WizardState['calendar'];
+  onChange: (v: WizardState['calendar']) => void;
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div>
+      <h2 style={{ color: TEXT, fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+        Google Calendar (Optional)
+      </h2>
+      <p style={{ color: TEXT_DIM, fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+        Connect your Google Calendar so Companion can see your schedule and create events.
+      </p>
+
+      <div style={{
+        background: SURFACE,
+        border: `1px solid ${BORDER}`,
+        borderRadius: '8px',
+        padding: '1.25rem',
+        marginBottom: '1.5rem',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', color: TEXT_DIM, fontSize: '0.88rem', lineHeight: 1.6 }}>
+          <div>1. Go to <span style={{ color: TEXT }}>console.cloud.google.com</span></div>
+          <div>2. Create a project → Enable <span style={{ color: TEXT }}>"Google Calendar API"</span></div>
+          <div>3. Go to APIs &amp; Services → Credentials → Create OAuth client</div>
+          <div>4. Choose <span style={{ color: TEXT }}>"TV and Limited Input Devices"</span> as application type</div>
+          <div>5. Copy the Client ID and Client Secret below</div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <Label>Client ID</Label>
+        <Input
+          value={calendar.clientId}
+          onChange={v => onChange({ ...calendar, clientId: v })}
+          placeholder="123456.apps.googleusercontent.com"
+        />
+      </div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <Label>Client Secret</Label>
+        <Input
+          value={calendar.clientSecret}
+          onChange={v => onChange({ ...calendar, clientSecret: v })}
+          placeholder="GOCSPX-..."
+          type="password"
+        />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Btn variant="secondary" onClick={onBack}>← Back</Btn>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <Btn variant="secondary" onClick={() => {
+            onChange({ clientId: '', clientSecret: '', skip: true });
+            onNext();
+          }}>Skip</Btn>
+          <Btn
+            onClick={onNext}
+            disabled={!calendar.clientId.trim() || !calendar.clientSecret.trim()}
+          >Next →</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Step 8: Applying ----
 function StepApply({ state, onBack }: { state: WizardState; onBack: () => void }) {
   const [phase, setPhase] = useState<'applying' | 'done' | 'error'>('applying');
   const [error, setError] = useState<string | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
   const apkUrl = window.location.origin + '/download/apk';
+
+  // Calendar connect state
+  const [calPhase, setCalPhase] = useState<'idle' | 'starting' | 'waiting' | 'connected' | 'error' | 'skip'>('idle');
+  const [calCode, setCalCode] = useState<string | null>(null);
+  const [calUrl, setCalUrl] = useState<string | null>(null);
+  const [calErr, setCalErr] = useState<string | null>(null);
+  const [calToken, setCalToken] = useState<string | null>(null);
+  const calPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const calUrlOpenedRef = useRef(false);
 
   useEffect(() => {
     async function apply() {
@@ -693,7 +772,12 @@ function StepApply({ state, onBack }: { state: WizardState; onBack: () => void }
           defaultModel = model.baseUrl ? `${model.baseUrl}:${model.modelId}` : model.modelId;
           defaultModelKey = model.apiKey;
         }
-        const applyBody = { ...state, model: { defaultModel, apiKey: defaultModelKey } };
+        const applyBody = {
+          ...state,
+          model: { defaultModel, apiKey: defaultModelKey },
+          googleClientId: state.calendar.skip ? '' : state.calendar.clientId,
+          googleClientSecret: state.calendar.skip ? '' : state.calendar.clientSecret,
+        };
         const r = await fetch('/install/apply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -710,6 +794,103 @@ function StepApply({ state, onBack }: { state: WizardState; onBack: () => void }
     }
     apply();
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Calendar connect flow — kicks off when server is back up
+  useEffect(() => {
+    if (!showDashboard) return;
+    if (state.calendar.skip || !state.calendar.clientId) {
+      setCalPhase('skip');
+      return;
+    }
+
+    async function startCalendar() {
+      setCalPhase('starting');
+
+      // Get JWT — retry up to 10 times with 2s delay
+      let token: string | null = null;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          const tr = await fetch('/auth/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secret: state.authSecret }),
+          });
+          if (tr.ok) {
+            const td = await tr.json() as { token: string };
+            token = td.token;
+            break;
+          }
+        } catch {
+          // server still restarting
+        }
+        await new Promise(res => setTimeout(res, 2000));
+      }
+
+      if (!token) {
+        setCalPhase('error');
+        setCalErr('Could not start calendar auth. You can connect later from Dashboard → Setup.');
+        return;
+      }
+      setCalToken(token);
+
+      // Start device flow
+      try {
+        const dr = await fetch('/calendar/auth/device/start', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!dr.ok) throw new Error('Device start failed');
+        const dd = await dr.json() as { user_code: string; verification_url: string; expires_in: number };
+        setCalCode(dd.user_code);
+        setCalUrl(dd.verification_url);
+        setCalPhase('waiting');
+      } catch {
+        setCalPhase('error');
+        setCalErr('Could not start calendar auth. You can connect later from Dashboard → Setup.');
+        return;
+      }
+    }
+
+    startCalendar();
+
+    return () => {
+      if (calPollRef.current) clearInterval(calPollRef.current);
+    };
+  }, [showDashboard]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Poll for calendar authorization
+  useEffect(() => {
+    if (calPhase !== 'waiting' || !calToken) return;
+
+    calPollRef.current = setInterval(async () => {
+      try {
+        const pr = await fetch('/calendar/auth/device/status', {
+          headers: { Authorization: `Bearer ${calToken}` },
+        });
+        if (pr.ok) {
+          const pd = await pr.json() as { connected: boolean };
+          if (pd.connected) {
+            setCalPhase('connected');
+            if (calPollRef.current) clearInterval(calPollRef.current);
+          }
+        }
+      } catch {
+        // ignore transient errors
+      }
+    }, 3000);
+
+    return () => {
+      if (calPollRef.current) clearInterval(calPollRef.current);
+    };
+  }, [calPhase, calToken]);
+
+  // Auto-open verification URL once
+  useEffect(() => {
+    if (calPhase === 'waiting' && calUrl && !calUrlOpenedRef.current) {
+      calUrlOpenedRef.current = true;
+      window.open(calUrl, '_blank');
+    }
+  }, [calPhase, calUrl]);
 
   if (phase === 'applying') {
     return (
@@ -756,6 +937,88 @@ function StepApply({ state, onBack }: { state: WizardState; onBack: () => void }
             → Open Dashboard
           </a>
 
+          {/* Calendar connect section */}
+          {calPhase !== 'skip' && (
+            <div style={{ marginTop: '2rem', borderTop: `1px solid ${BORDER}`, paddingTop: '1.5rem', textAlign: 'left' }}>
+              <p style={{ color: TEXT, fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                Connect Google Calendar
+              </p>
+
+              {(calPhase === 'idle' || calPhase === 'starting') && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: TEXT_DIM, fontSize: '0.88rem' }}>
+                  <Spinner />
+                  <span>Starting authorization...</span>
+                </div>
+              )}
+
+              {calPhase === 'waiting' && calCode && (
+                <>
+                  <p style={{ color: TEXT_DIM, fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                    Enter this code at accounts.google.com/device:
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                    <span style={{
+                      fontFamily: 'monospace',
+                      fontSize: '1.4rem',
+                      fontWeight: 700,
+                      color: TEXT,
+                      background: BG,
+                      border: `1px solid ${BORDER}`,
+                      borderRadius: '6px',
+                      padding: '8px 16px',
+                      letterSpacing: '0.1em',
+                    }}>
+                      {calCode}
+                    </span>
+                    {calUrl && (
+                      <a
+                        href={calUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color: ACCENT,
+                          fontSize: '0.88rem',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          border: `1px solid ${ACCENT}`,
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Open Google →
+                      </a>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: TEXT_DIM, fontSize: '0.85rem' }}>
+                    <span>Waiting for authorization...</span>
+                    <div style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                      border: `2px solid ${BORDER}`,
+                      borderTopColor: ACCENT,
+                      animation: 'spin 0.8s linear infinite',
+                      flexShrink: 0,
+                    }} />
+                  </div>
+                </>
+              )}
+
+              {calPhase === 'connected' && (
+                <p style={{ color: ACCENT, fontSize: '0.95rem', fontWeight: 600 }}>
+                  ✓ Google Calendar connected
+                </p>
+              )}
+
+              {calPhase === 'error' && (
+                <p style={{ color: TEXT_DIM, fontSize: '0.85rem' }}>
+                  ⚠ {calErr}
+                </p>
+              )}
+            </div>
+          )}
+
           <div style={{ marginTop: '2rem', borderTop: `1px solid ${BORDER}`, paddingTop: '1.5rem' }}>
             <p style={{ color: TEXT, fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem' }}>
               Install on Android
@@ -786,6 +1049,7 @@ export default function InstallApp() {
     authSecret: generateSecret(),
     model: { category: 'local', provider: 'omlx', baseUrl: 'http://localhost:8000/v1', modelId: 'llama3.2', apiKey: '' },
     personas: [],
+    calendar: { clientId: '', clientSecret: '', skip: false },
   });
 
   useEffect(() => {
@@ -851,10 +1115,10 @@ export default function InstallApp() {
     );
   }
 
-  const TOTAL_STEPS = 6; // steps 1–6
+  const TOTAL_STEPS = 7; // steps 1–7
 
   function stepIndicator() {
-    if (step === 0 || step === 7) return null;
+    if (step === 0 || step === 8) return null;
     return (
       <div style={{ color: TEXT_DIM, fontSize: '0.78rem', marginBottom: '1.5rem', textAlign: 'center' }}>
         Step {step} of {TOTAL_STEPS}
@@ -957,7 +1221,16 @@ export default function InstallApp() {
         )}
 
         {step === 7 && (
-          <StepApply state={state} onBack={() => setStep(6)} />
+          <StepCalendar
+            calendar={state.calendar}
+            onChange={calendar => setState(s => ({ ...s, calendar }))}
+            onNext={() => setStep(8)}
+            onBack={() => setStep(6)}
+          />
+        )}
+
+        {step === 8 && (
+          <StepApply state={state} onBack={() => setStep(7)} />
         )}
       </div>
     </div>

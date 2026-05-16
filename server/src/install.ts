@@ -136,6 +136,8 @@ export function createInstallRouter(): Router {
       defaultModelKey,
       defaultModelUrl,
       personas,
+      googleClientId,
+      googleClientSecret,
     } = req.body as {
       vault: string;
       userName: string;
@@ -144,6 +146,8 @@ export function createInstallRouter(): Router {
       defaultModelKey?: string;
       defaultModelUrl?: string;
       personas: Array<{ mode: string; name: string; emoji: string }>;
+      googleClientId?: string;
+      googleClientSecret?: string;
     };
 
     try {
@@ -164,6 +168,8 @@ export function createInstallRouter(): Router {
       if (defaultModel) envMap["DEFAULT_MODEL"] = defaultModel;
       if (defaultModelKey) envMap["DEFAULT_MODEL_KEY"] = defaultModelKey;
       if (defaultModelUrl) envMap["DEFAULT_MODEL_URL"] = defaultModelUrl;
+      if (googleClientId) envMap["GOOGLE_CLIENT_ID"] = googleClientId;
+      if (googleClientSecret) envMap["GOOGLE_CLIENT_SECRET"] = googleClientSecret;
       fs.writeFileSync(ENV_PATH, serializeEnvFile(envMap), "utf8");
 
       // Step 3: Update launchd plist
@@ -176,6 +182,8 @@ export function createInstallRouter(): Router {
         if (defaultModel) plistUpdates["DEFAULT_MODEL"] = defaultModel;
         if (defaultModelKey) plistUpdates["DEFAULT_MODEL_KEY"] = defaultModelKey;
         if (defaultModelUrl) plistUpdates["DEFAULT_MODEL_URL"] = defaultModelUrl;
+        if (googleClientId) plistUpdates["GOOGLE_CLIENT_ID"] = googleClientId;
+        if (googleClientSecret) plistUpdates["GOOGLE_CLIENT_SECRET"] = googleClientSecret;
 
         for (const [key, value] of Object.entries(plistUpdates)) {
           const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
