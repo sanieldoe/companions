@@ -16,13 +16,13 @@
 ---
 
 **One generic AI can't hold all the roles you need it to.**
-Reflection needs patience. Creation needs momentum. Knowledge needs structure. Most tools give you one chatbot and tell you to figure it out.
+Reflection needs patience. Creation needs guardrails and momentum. Knowledge needs structure. It's not that most tools can't do it, but this one is the one that helps my brain.
 
 **Your data shouldn't live on someone else's server.**
-Companions runs on your machine. Your vault is plain markdown files. No cloud account, no subscription, no lock-in.
+Companions runs on your machine. Your vault is plain markdown files. No cloud account, no subscription, no lock-in. All local!
 
 **Context gets lost when your tools don't talk to each other.**
-All four agents share one vault. A reflection from Tracker shows up when Mentor needs context. A draft from Shapeshifter becomes a wiki entry Keeper can find later.
+All four agents share one vault. A calendar event from Tracker shows up if Mentor needs context. A draft from Shapeshifter becomes a wiki entry Keeper can find later.
 
 <!-- screenshot: hero image — all four agent tabs side by side on mobile -->
 
@@ -39,7 +39,7 @@ Patient, ADHD-aware. Slows you down, asks the right question, gives you one next
 Infers your intent and acts. Canvas by default — 10 composable block types for building plans, drafts, and prototypes. It already built it before Mentor finished the first question.
 
 ### 🐝 Keeper — Personal wiki
-Ingests raw notes and organises them into a linked, searchable knowledge base using a Johnny Decimal structure. Surfaces forgotten knowledge — the stuff you wrote six months ago that's relevant right now.
+Ingests raw notes and organises them into a linked, searchable knowledge base uinspired by Karpathy and Johnny Decimal structure. Surfaces forgotten knowledge — the stuff you wrote six months ago that's relevant right now.
 
 ### 🐦 Tracker — Daily rhythm and reflection
 Brings together everything you need to start or close the day: a weekly phrase to sit with, your calendar, prioritised to-dos, rhythms (daily / weekly / monthly / yearly), and a three-line haiku written fresh each morning.
@@ -56,7 +56,6 @@ vault/
   wiki/       linked knowledge — Keeper-maintained articles
   journal/    dated entries — Tracker reflections and logs
   projects/   long-form work — plans, drafts, active projects
-  tasks/      open tasks synced across agents
 ```
 
 Plain markdown. No database. Open any file in any editor.
