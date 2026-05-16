@@ -266,6 +266,61 @@ export function createAdminRouter(): Router {
     });
   });
 
+  router.put("/admin/vault", (req: Request, res: Response) => {
+    const { path: newVaultRaw } = req.body as { path: string };
+    if (!newVaultRaw?.trim()) {
+      res.status(400).json({ error: "path is required" });
+      return;
+    }
+    const newVault = newVaultRaw.trim().startsWith("~/")
+      ? path.join(os.homedir(), newVaultRaw.trim().slice(2))
+      : newVaultRaw.trim();
+
+    // Create if missing
+    try {
+      fs.mkdirSync(newVault, { recursive: true });
+      for (const sub of ["wiki", "raw", "journal", "projects", "tasks"]) {
+        fs.mkdirSync(path.join(newVault, sub), { recursive: true });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(400).json({ error: `Cannot create vault at path: ${msg}` });
+      return;
+    }
+
+    // Write .env
+    const envPath = path.resolve(process.cwd(), ".env");
+    const envMap: Record<string, string> = {};
+    if (fs.existsSync(envPath)) {
+      for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+        const eq = line.indexOf("=");
+        if (eq > 0 && !line.startsWith("#")) envMap[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
+      }
+    }
+    envMap["COMPANION_VAULT"] = newVault;
+    fs.writeFileSync(envPath, Object.entries(envMap).map(([k, v]) => `${k}=${v}`).join("\n") + "\n", "utf8");
+
+    // Update plist
+    const plistPath = path.join(os.homedir(), "Library", "LaunchAgents", "com.companion.server.plist");
+    if (fs.existsSync(plistPath)) {
+      let xml = fs.readFileSync(plistPath, "utf8");
+      xml = xml.replace(
+        new RegExp(`(<key>COMPANION_VAULT<\\/key>\\s*<string>)[^<]*(</string>)`),
+        `$1${newVault}$2`
+      );
+      fs.writeFileSync(plistPath, xml, "utf8");
+    }
+
+    res.json({ ok: true, vault: newVault });
+
+    setTimeout(() => {
+      const uid = process.getuid?.() ?? 501;
+      exec(`launchctl kickstart -k gui/${uid}/com.companion.server`, (err) => {
+        if (err) console.error("[admin] Failed to restart after vault change:", err);
+      });
+    }, 500);
+  });
+
   router.put("/admin/backup/destination", (req: Request, res: Response) => {
     const { destination } = req.body as { destination: string };
     if (!destination?.trim()) {

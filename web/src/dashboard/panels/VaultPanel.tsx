@@ -61,6 +61,10 @@ export default function VaultPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [editingVault, setEditingVault] = useState(false);
+  const [newVaultPath, setNewVaultPath] = useState('');
+  const [vaultSaving, setVaultSaving] = useState(false);
+  const [vaultErr, setVaultErr] = useState<string | null>(null);
 
   const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null);
   const [backupDest, setBackupDest] = useState('~/companion-vault-backup');
@@ -95,6 +99,36 @@ export default function VaultPanel() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  }
+
+  function startEditVault() {
+    setNewVaultPath(stats?.vaultPath ?? '');
+    setVaultErr(null);
+    setEditingVault(true);
+  }
+
+  function saveVault() {
+    if (!newVaultPath.trim()) return;
+    setVaultSaving(true);
+    setVaultErr(null);
+    apiFetch('/admin/vault', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: newVaultPath.trim() }),
+    })
+      .then(r => r.json())
+      .then((d: { ok?: boolean; error?: string }) => {
+        if (d.ok) {
+          setEditingVault(false);
+        } else {
+          setVaultErr(d.error ?? 'Failed to update vault');
+          setVaultSaving(false);
+        }
+      })
+      .catch((err: Error) => {
+        setVaultErr(err.message);
+        setVaultSaving(false);
+      });
   }
 
   function runBackup() {
@@ -158,40 +192,63 @@ export default function VaultPanel() {
             <p style={{ color: TEXT_DIM, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.75rem' }}>
               Vault Path
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <code style={{
-                background: BG,
-                border: `1px solid ${BORDER}`,
-                borderRadius: '4px',
-                padding: '6px 10px',
-                color: TEXT,
-                fontSize: '0.85rem',
-                fontFamily: 'monospace',
-                flex: 1,
-                wordBreak: 'break-all',
-              }}>
-                {stats.vaultPath}
-              </code>
-              <button
-                onClick={copyPath}
-                style={{
-                  background: 'transparent',
-                  border: `1px solid ${BORDER}`,
-                  color: copied ? ACCENT : TEXT_DIM,
-                  borderRadius: '4px',
-                  padding: '5px 12px',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.2s',
-                }}
-              >
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <p style={{ color: TEXT_DIM, fontSize: '0.78rem', marginTop: '0.75rem' }}>
-              To change the vault path, edit <code style={{ fontFamily: 'monospace', color: TEXT_DIM }}>COMPANION_VAULT</code> in <code style={{ fontFamily: 'monospace', color: TEXT_DIM }}>server/.env</code> and restart.
-            </p>
+
+            {!editingVault ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <code style={{
+                    background: BG,
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '4px',
+                    padding: '6px 10px',
+                    color: TEXT,
+                    fontSize: '0.85rem',
+                    fontFamily: 'monospace',
+                    flex: 1,
+                    wordBreak: 'break-all',
+                  }}>
+                    {stats.vaultPath}
+                  </code>
+                  <button onClick={copyPath} style={{ background: 'transparent', border: `1px solid ${BORDER}`, color: copied ? ACCENT : TEXT_DIM, borderRadius: '4px', padding: '5px 12px', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                  <button onClick={startEditVault} style={{ background: 'transparent', border: `1px solid ${BORDER}`, color: TEXT_DIM, borderRadius: '4px', padding: '5px 12px', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Change
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={newVaultPath}
+                  onChange={e => setNewVaultPath(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') saveVault(); if (e.key === 'Escape') setEditingVault(false); }}
+                  autoFocus
+                  style={{ background: BG, border: `1px solid ${ACCENT}`, borderRadius: '4px', padding: '6px 10px', color: TEXT, fontSize: '0.85rem', fontFamily: 'monospace', width: '100%', boxSizing: 'border-box', outline: 'none', marginBottom: '0.6rem' }}
+                />
+                <p style={{ color: TEXT_DIM, fontSize: '0.78rem', marginBottom: '0.75rem' }}>
+                  Server will restart after saving. Missing subdirs will be created automatically.
+                </p>
+                {vaultErr && <p style={{ color: ERROR, fontSize: '0.78rem', marginBottom: '0.75rem' }}>{vaultErr}</p>}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={saveVault}
+                    disabled={vaultSaving}
+                    style={{ background: ACCENT, border: 'none', borderRadius: '6px', padding: '7px 18px', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: vaultSaving ? 'not-allowed' : 'pointer', opacity: vaultSaving ? 0.7 : 1 }}
+                  >
+                    {vaultSaving ? 'Saving…' : 'Save & Restart'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingVault(false); setVaultErr(null); }}
+                    disabled={vaultSaving}
+                    style={{ background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 18px', color: TEXT_DIM, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           <div style={{
