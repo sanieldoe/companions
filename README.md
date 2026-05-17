@@ -137,19 +137,14 @@ The `html` block is where it becomes a playground. Write a self-contained React 
 <tr>
 <td width="260" valign="top"><img src="docs/screenshots/keeper-wiki.png" alt="Keeper wiki" width="240"></td>
 <td valign="top">
+<td valign="top"><img src="docs/screenshots/keeper-notes.png" alt="Keeper raw captures" width="240"></td>
+<td valign="top"><img src="docs/screenshots/keeper-web.png" alt="Keeper knowledge graph" width="240"></td>
 
 Drop in raw notes, voice dumps, or rough ideas. Keeper extracts the signal, organises it into the wiki, and keeps the index clean. It surfaces forgotten knowledge — prioritising older, reinforced memories you've likely lost track of.
 
 The wiki follows a Johnny Decimal structure so nothing gets lost in an undifferentiated pile:
 
 `01-identity` · `02-knowledge` · `03-projects` · `04-areas` · `05-relationships` · `06-creativity` · `07-systems` · `08-resources` · `09-media` · `10-events` · `11-questions` · `99-archive`
-
-</td>
-</tr>
-<tr>
-<td valign="top"><img src="docs/screenshots/keeper-notes.png" alt="Keeper raw captures" width="240"></td>
-<td valign="top"><img src="docs/screenshots/keeper-web.png" alt="Keeper knowledge graph" width="240"></td>
-</tr>
 </table>
 
 ---
