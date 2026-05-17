@@ -1,10 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { google } from "googleapis";
 import fs from "node:fs";
 import path from "node:path";
-import os from "node:os";
-
-const TOKENS_PATH = path.join(os.homedir(), ".companion", "google-tokens.json");
 
 const VAULT_ROOT = process.env.COMPANION_VAULT ?? path.resolve(process.cwd(), "..");
 const RHYTHMS_PATH = path.join(VAULT_ROOT, "tasks", "rhythms.json");
@@ -17,8 +13,6 @@ const DEFAULT_NOTIFY: Record<Rhythm["type"], number> = {
   monthly: 4320,
   annual: 10080,
 };
-
-const WEEKDAY_NAMES = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
 export interface Rhythm {
   id: string;
@@ -37,7 +31,6 @@ export interface Rhythm {
   createdAt: string;
   source: "manual" | "ingest";
   completions: string[];
-  calEventId?: string;
 }
 
 export interface RhythmDue {
@@ -182,89 +175,7 @@ export function isDue(rhythm: Rhythm, onDate: Date): boolean {
   return false;
 }
 
-function makeOAuth2Client() {
-  return new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-  );
-}
-
-function loadTokens(): { access_token?: string; refresh_token?: string } | null {
-  try {
-    return JSON.parse(fs.readFileSync(TOKENS_PATH, "utf-8"));
-  } catch {
-    return null;
-  }
-}
-
-function buildRRule(rhythm: Rhythm): string {
-  if (rhythm.type === "daily") {
-    return "RRULE:FREQ=DAILY";
-  }
-  if (rhythm.type === "every-n-days") {
-    return `RRULE:FREQ=DAILY;INTERVAL=${rhythm.schedule.n ?? 1}`;
-  }
-  if (rhythm.type === "every-n-weeks") {
-    return `RRULE:FREQ=WEEKLY;INTERVAL=${rhythm.schedule.n ?? 1}`;
-  }
-  if (rhythm.type === "weekly") {
-    const days = (rhythm.schedule.days ?? []).map((d) => WEEKDAY_NAMES[d]).join(",");
-    return `RRULE:FREQ=WEEKLY;BYDAY=${days}`;
-  }
-  if (rhythm.type === "monthly") {
-    return `RRULE:FREQ=MONTHLY;BYMONTHDAY=${rhythm.schedule.dayOfMonth ?? 1}`;
-  }
-  return `RRULE:FREQ=YEARLY;BYMONTH=${rhythm.schedule.month ?? 1};BYMONTHDAY=${rhythm.schedule.day ?? 1}`;
-}
-
-async function createCalEvent(rhythm: Rhythm): Promise<string | null> {
-  const tokens = loadTokens();
-  if (!tokens?.refresh_token) return null;
-
-  try {
-    const oauth2 = makeOAuth2Client();
-    oauth2.setCredentials(tokens);
-    const cal = google.calendar({ version: "v3", auth: oauth2 });
-
-    const startDate = getCanonicalDueDate(rhythm, new Date());
-
-    const resp = await cal.events.insert({
-      calendarId: "primary",
-      requestBody: {
-        summary: rhythm.title,
-        description: rhythm.description,
-        start: { date: startDate },
-        end: { date: startDate },
-        recurrence: [buildRRule(rhythm)],
-        reminders: {
-          useDefault: false,
-          overrides: [{ method: "popup", minutes: rhythm.notifyMinutes }],
-        },
-      },
-    });
-
-    return resp.data.id ?? null;
-  } catch (err) {
-    console.error("[rhythms] createCalEvent error:", err);
-    return null;
-  }
-}
-
-async function deleteCalEvent(eventId: string): Promise<void> {
-  const tokens = loadTokens();
-  if (!tokens?.refresh_token) return;
-
-  try {
-    const oauth2 = makeOAuth2Client();
-    oauth2.setCredentials(tokens);
-    const cal = google.calendar({ version: "v3", auth: oauth2 });
-    await cal.events.delete({ calendarId: "primary", eventId });
-  } catch {
-    // swallow
-  }
-}
-
-async function createRhythmInternal(
+function createRhythmInternal(
   body: {
     title: string;
     type: Rhythm["type"];
@@ -273,7 +184,7 @@ async function createRhythmInternal(
     notifyMinutes?: number;
     source?: Rhythm["source"];
   },
-): Promise<Rhythm> {
+): Rhythm {
   const rhythm: Rhythm = {
     id: crypto.randomUUID(),
     title: body.title,
@@ -287,9 +198,6 @@ async function createRhythmInternal(
     completions: [],
   };
 
-  const calEventId = await createCalEvent(rhythm);
-  if (calEventId) rhythm.calEventId = calEventId;
-
   const rhythms = loadRhythms();
   rhythms.push(rhythm);
   saveRhythms(rhythms);
@@ -297,13 +205,13 @@ async function createRhythmInternal(
   return rhythm;
 }
 
-export async function createRhythmFromIngest(data: {
+export function createRhythmFromIngest(data: {
   title: string;
   type: Rhythm["type"];
   schedule: Rhythm["schedule"];
   description?: string;
   notifyMinutes?: number;
-}): Promise<Rhythm> {
+}): Rhythm {
   return createRhythmInternal({ ...data, source: "ingest" });
 }
 
@@ -352,7 +260,7 @@ export function createRhythmsRouter(): Router {
     }
 
     try {
-      const rhythm = await createRhythmInternal({
+      const rhythm = createRhythmInternal({
         title: body.title,
         type: body.type,
         schedule: body.schedule,
@@ -367,7 +275,7 @@ export function createRhythmsRouter(): Router {
     }
   });
 
-  router.put("/rhythms/:id", async (req: Request, res: Response) => {
+  router.put("/rhythms/:id", (req: Request, res: Response) => {
     const { id } = req.params;
     const rhythms = loadRhythms();
     const idx = rhythms.findIndex((r) => r.id === id);
@@ -378,25 +286,13 @@ export function createRhythmsRouter(): Router {
 
     const existing = rhythms[idx];
     const body = req.body as Partial<Rhythm>;
-    const scheduleChanged =
-      body.schedule !== undefined &&
-      JSON.stringify(body.schedule) !== JSON.stringify(existing.schedule);
-    const titleChanged = body.title !== undefined && body.title !== existing.title;
-
-    const updated: Rhythm = { ...existing, ...body, id: existing.id, createdAt: existing.createdAt };
-    rhythms[idx] = updated;
-
-    if ((scheduleChanged || titleChanged) && existing.calEventId) {
-      await deleteCalEvent(existing.calEventId);
-      const newEventId = await createCalEvent(updated);
-      rhythms[idx].calEventId = newEventId ?? undefined;
-    }
+    rhythms[idx] = { ...existing, ...body, id: existing.id, createdAt: existing.createdAt };
 
     saveRhythms(rhythms);
     res.json(rhythms[idx]);
   });
 
-  router.delete("/rhythms/:id", async (req: Request, res: Response) => {
+  router.delete("/rhythms/:id", (req: Request, res: Response) => {
     const { id } = req.params;
     const rhythms = loadRhythms();
     const idx = rhythms.findIndex((r) => r.id === id);
@@ -405,13 +301,8 @@ export function createRhythmsRouter(): Router {
       return;
     }
 
-    const [removed] = rhythms.splice(idx, 1);
+    rhythms.splice(idx, 1);
     saveRhythms(rhythms);
-
-    if (removed.calEventId) {
-      await deleteCalEvent(removed.calEventId);
-    }
-
     res.json({ ok: true });
   });
 

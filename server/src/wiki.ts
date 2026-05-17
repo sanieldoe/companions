@@ -403,7 +403,7 @@ Today: ${today}`;
   const rhythmsRaw = Array.isArray(parsed.rhythms) ? parsed.rhythms : [];
   for (const r of rhythmsRaw) {
     if (!r.title || !r.type || !r.schedule) continue;
-    createRhythmFromIngest(r as Parameters<typeof createRhythmFromIngest>[0]).catch(() => {});
+    try { createRhythmFromIngest(r as Parameters<typeof createRhythmFromIngest>[0]); } catch { }
   }
 
   return {
