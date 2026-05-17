@@ -307,7 +307,7 @@ export default function SettingsModal({ open, onClose }: Props) {
 
             {/* Folder picker for new conversation */}
             {showNewConvoFolderPicker && (
-              <div style={{ background: theme.surfaceAlt, borderTop: `1px solid ${theme.border}`, paddingVertical: 4 }}>
+              <div style={{ background: theme.surfaceAlt, borderTop: `1px solid ${theme.border}`, padding: "4px 0" }}>
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', cursor: 'pointer', borderBottom: `1px solid ${theme.border}` }}
                   onClick={() => { setNewConvoFolder(undefined); setShowNewConvoFolderPicker(false); newConversation(dispatch, state.serverUrl!, state.token!); onClose() }}
