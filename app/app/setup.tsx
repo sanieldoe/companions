@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { getItem, setItem, deleteItem } from '../lib/storage';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
 
@@ -82,8 +82,8 @@ export default function SetupScreen() {
       }
 
       // Store credentials securely
-      await SecureStore.setItemAsync('serverUrl', normalised);
-      await SecureStore.setItemAsync('token', data.token);
+      await setItem('serverUrl', normalised);
+      await setItem('token', data.token);
 
       // Update store
       setCredentials(normalised, data.token);

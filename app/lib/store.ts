@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import { setItem } from './storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch } from './api';
 
@@ -273,7 +273,7 @@ export const useStore = create<CompanionStore>((set, get) => ({
   toggleTheme() {
     const next = !get().isDark;
     set({ isDark: next });
-    SecureStore.setItemAsync('isDark', String(next)).catch(() => {});
+    setItem('isDark', String(next)).catch(() => {});
   },
 
   setIsDark(v) {

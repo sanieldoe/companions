@@ -6,7 +6,7 @@ import {
 import { Clipboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { deleteItem } from '../lib/storage';
 import { useTheme } from '../lib/theme';
 import { apiFetch } from '../lib/api';
 import { useStore, ConversationMeta, MODE_ACCENTS, getModeName } from '../lib/store';
@@ -697,8 +697,8 @@ export default function SettingsModal({ visible, onClose, section }: Props) {
                         style: 'destructive',
                         onPress: async () => {
                           wsService.disconnect();
-                          await SecureStore.deleteItemAsync('serverUrl');
-                          await SecureStore.deleteItemAsync('token');
+                          await deleteItem('serverUrl');
+                          await deleteItem('token');
                           useStore.getState().setCredentials('', '');
                           onClose();
                           router.replace('/setup');
