@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
 import { useStore, flushSyncQueue } from './store';
 
 type ServerEvent =
@@ -29,6 +30,24 @@ class WsService {
   private rawListeners: Set<RawListener> = new Set();
   private pendingPersona: 'mentor' | 'shapeshifter' | null = null;
   private pendingConversationLoad = false;
+
+  constructor() {
+    // When the app returns to foreground, reconnect if the WS died while backgrounded.
+    // On Android/iOS the JS thread is frozen in background so ws.onclose may not fire
+    // until later — this ensures we reconnect immediately when the user returns.
+    AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && this.shouldConnect) {
+        this._checkAndReconnect();
+      }
+    });
+  }
+
+  private _checkAndReconnect(): void {
+    if (this.isConnecting) return;
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED || this.ws.readyState === WebSocket.CLOSING) {
+      this._connect();
+    }
+  }
 
   addListener(fn: RawListener): void {
     this.rawListeners.add(fn);

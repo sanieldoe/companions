@@ -582,8 +582,10 @@ async function handleClientMessage(
           console.warn(`[gateway] Wiki context lookup failed: ${err}`);
         }
       }
+      agentRunning = true; // set early — prevents cleanup() removing listener before agent_start fires
       await getSession().prompt(promptText, { streamingBehavior: "followUp" });
     } catch (err) {
+      agentRunning = false; // reset if prompt failed before agent_start
       // If primary model is unreachable and fallback is configured, activate and retry once
       if (isConnectionError(err) && !isFallbackActive()) {
         const activated = await activateFallback();
@@ -593,9 +595,11 @@ async function handleClientMessage(
             message: "Local model offline — switched to cloud fallback",
           });
           try {
+            agentRunning = true;
             await getSession().prompt(promptText, { streamingBehavior: "followUp" });
             return;
           } catch (retryErr) {
+            agentRunning = false;
             const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
             send(ws, { type: "error", code: "model_unavailable", message: `Fallback also failed: ${retryMsg}` });
             return;
