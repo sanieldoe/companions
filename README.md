@@ -226,7 +226,7 @@ VISION_MODEL_KEY=your-omlx-api-key
 
 ## Mobile + web
 
-- **Android:** [Download APK](https://github.com/sanieldoe/companions/releases/latest/download/companions-android.apk) — sideload and scan the QR code from the setup wizard
+- **Android:** [Download APK](https://github.com/sanieldoe/companions/releases/latest) — sideload and scan the QR code from the setup wizard
 - **iOS:** web app at `/app` (TestFlight build coming)
 - **Dashboard:** `http://<your-server>/dashboard` — manage vault, models, personas, and updates
 
