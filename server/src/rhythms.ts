@@ -10,6 +10,7 @@ const VAULT_ROOT = process.env.COMPANION_VAULT ?? path.resolve(process.cwd(), ".
 const RHYTHMS_PATH = path.join(VAULT_ROOT, "tasks", "rhythms.json");
 
 const DEFAULT_NOTIFY: Record<Rhythm["type"], number> = {
+  daily: 60,
   weekly: 1440,
   monthly: 4320,
   annual: 10080,
@@ -21,7 +22,7 @@ export interface Rhythm {
   id: string;
   title: string;
   description?: string;
-  type: "weekly" | "monthly" | "annual";
+  type: "daily" | "weekly" | "monthly" | "annual";
   schedule: {
     days?: number[];
     dayOfMonth?: number;
@@ -83,6 +84,10 @@ export function getCanonicalDueDate(rhythm: Rhythm, ref: Date): string {
   const refDay = ref.getDate();
   const refDow = ref.getDay();
 
+  if (rhythm.type === "daily") {
+    return toDateString(ref);
+  }
+
   if (rhythm.type === "weekly") {
     const days = (rhythm.schedule.days ?? []).slice().sort((a, b) => a - b);
     if (days.length === 0) return toDateString(ref);
@@ -120,6 +125,10 @@ export function isDue(rhythm: Rhythm, onDate: Date): boolean {
   const m = onDate.getMonth();
   const d = onDate.getDate();
   const dow = onDate.getDay();
+
+  if (rhythm.type === "daily") {
+    return true;
+  }
 
   if (rhythm.type === "weekly") {
     return (rhythm.schedule.days ?? []).includes(dow);
@@ -164,6 +173,9 @@ function loadTokens(): { access_token?: string; refresh_token?: string } | null 
 }
 
 function buildRRule(rhythm: Rhythm): string {
+  if (rhythm.type === "daily") {
+    return "RRULE:FREQ=DAILY";
+  }
   if (rhythm.type === "weekly") {
     const days = (rhythm.schedule.days ?? []).map((d) => WEEKDAY_NAMES[d]).join(",");
     return `RRULE:FREQ=WEEKLY;BYDAY=${days}`;

@@ -70,7 +70,7 @@ interface AgendaDay {
 interface RhythmDue {
   id: string;
   title: string;
-  type: 'weekly' | 'monthly' | 'annual';
+  type: 'daily' | 'weekly' | 'monthly' | 'annual';
   dueDate: string;
   completed: boolean;
   schedule: {
@@ -85,7 +85,7 @@ interface Rhythm {
   id: string;
   title: string;
   description?: string;
-  type: 'weekly' | 'monthly' | 'annual';
+  type: 'daily' | 'weekly' | 'monthly' | 'annual';
   schedule: {
     days?: number[];
     dayOfMonth?: number;
@@ -238,7 +238,7 @@ export default function LendaScreen() {
   const [rhythmForm, setRhythmForm] = useState<{
     visible: boolean;
     title: string;
-    type: 'weekly' | 'monthly' | 'annual';
+    type: 'daily' | 'weekly' | 'monthly' | 'annual';
     days: number[];
     dayOfMonth: number;
     month: number;
@@ -707,6 +707,7 @@ export default function LendaScreen() {
   const saveRhythm = useCallback(async () => {
     if (!rhythmForm.title.trim()) return;
     const schedule =
+      rhythmForm.type === 'daily' ? {} :
       rhythmForm.type === 'weekly' ? { days: rhythmForm.days.length ? rhythmForm.days : [0] } :
       rhythmForm.type === 'monthly' ? { dayOfMonth: rhythmForm.dayOfMonth } :
       { month: rhythmForm.month, day: rhythmForm.day };
@@ -1431,7 +1432,7 @@ export default function LendaScreen() {
             keyExtractor={r => r.id}
             ListEmptyComponent={<Text style={{ textAlign: 'center', color: theme.text, opacity: 0.4, marginTop: 40 }}>No rhythms yet</Text>}
             renderItem={({ item: r }) => {
-              const typeLabel = r.type === 'weekly' ? 'W' : r.type === 'monthly' ? 'M' : 'Y';
+              const typeLabel = r.type === 'daily' ? 'D' : r.type === 'weekly' ? 'W' : r.type === 'monthly' ? 'M' : 'Y';
               return (
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border + '33' }}>
                   <View style={{ flex: 1 }}>
@@ -1461,7 +1462,7 @@ export default function LendaScreen() {
               />
               {/* Type selector */}
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-                {(['weekly', 'monthly', 'annual'] as const).map(t => (
+                {(['daily', 'weekly', 'monthly', 'annual'] as const).map(t => (
                   <TouchableOpacity key={t} onPress={() => setRhythmForm(f => ({ ...f, type: t }))} style={{ flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: rhythmForm.type === t ? ACCENT : ACCENT + '22', alignItems: 'center' }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: rhythmForm.type === t ? '#fff' : ACCENT }}>{t[0].toUpperCase() + t.slice(1)}</Text>
                   </TouchableOpacity>
