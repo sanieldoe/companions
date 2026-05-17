@@ -44,7 +44,22 @@ class WsService {
 
   private _checkAndReconnect(): void {
     if (this.isConnecting) return;
-    if (!this.ws || this.ws.readyState === WebSocket.CLOSED || this.ws.readyState === WebSocket.CLOSING) {
+    if (!this.ws) {
+      this._connect();
+      return;
+    }
+    const rs = this.ws.readyState;
+    if (rs === WebSocket.CLOSED || rs === WebSocket.CLOSING) {
+      this._connect();
+      return;
+    }
+    // If the WS thinks it's OPEN but JS was frozen, the underlying socket
+    // is almost certainly dead (OS killed it during background). Force a
+    // reconnect when an agent run is in flight so we don't sit on a zombie socket.
+    const { agentState } = useStore.getState();
+    if (rs === WebSocket.OPEN && (agentState === 'thinking' || agentState === 'talking')) {
+      try { this.ws.close(); } catch {}
+      this.ws = null;
       this._connect();
     }
   }
@@ -123,7 +138,17 @@ class WsService {
 
       ws.onclose = () => {
         this.isConnecting = false;
-        useStore.setState({ connected: false, agentState: 'idle', streamingText: '' });
+        // Preserve streamingText if a response is in flight — the server will replay
+        // the full buffered response on reconnect (which begins with an injected
+        // agent_start that clears streamingText cleanly). Wiping here causes the
+        // visible bubble to vanish during the reconnect gap.
+        const { agentState } = useStore.getState();
+        const midStream = agentState === 'thinking' || agentState === 'talking';
+        if (midStream) {
+          useStore.setState({ connected: false });
+        } else {
+          useStore.setState({ connected: false, agentState: 'idle', streamingText: '' });
+        }
         if (this.shouldConnect) {
           this._scheduleReconnect();
         }
@@ -210,7 +235,12 @@ class WsService {
 
   private _scheduleReconnect() {
     this._clearReconnect();
-    const delay = 3000 + Math.random() * 2000;
+    // Short delay when foreground & mid-stream so we resume the replay quickly;
+    // longer otherwise to avoid hammering the server.
+    const { agentState } = useStore.getState();
+    const midStream = agentState === 'thinking' || agentState === 'talking';
+    const isActive = AppState.currentState === 'active';
+    const delay = (midStream && isActive) ? 500 : (3000 + Math.random() * 2000);
     this.reconnectTimer = setTimeout(() => {
       if (this.shouldConnect) {
         this._connect();

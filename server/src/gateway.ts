@@ -72,6 +72,9 @@ let replayBuffer: Record<string, unknown>[] | null = null;
 // Listener kept alive across a client disconnect so the stream isn't interrupted
 let orphanedListener: ((event: AgentSessionEvent) => void) | null = null;
 let orphanedMode: string | null = null;
+// Tracks the currently-bound ws so a late `close` event from a stale socket
+// (after a newer one has already taken over) doesn't clobber sharedSend.
+let activeWs: WebSocket | null = null;
 
 const MAX_PAYLOAD_BYTES = 20 * 1024 * 1024;
 
@@ -665,8 +668,10 @@ export function createGateway(server: Server): WebSocketServer {
     let trackedMode = getCurrentMode();
 
     // Send hello so client knows current mode immediately on connect/reconnect
-    // hasReplay signals that buffered tokens will follow — client must defer loadConversations
-    const hasReplay = agentRunning && replayBuffer !== null && replayBuffer.length > 0;
+    // hasReplay signals that buffered tokens will follow — client must defer loadConversations.
+    // NOTE: do NOT require agentRunning here — the agent may have finished while the client
+    // was disconnected. The buffer still contains the full response + agent_end we need to replay.
+    const hasReplay = replayBuffer !== null && replayBuffer.length > 0;
     send(ws, {
       type: "hello",
       mode: trackedMode,
@@ -700,14 +705,18 @@ export function createGateway(server: Server): WebSocketServer {
       orphanedListener = null;
       orphanedMode = null;
     }
-    // Replay buffered tokens if agent is still running
-    if (replayBuffer !== null && agentRunning && replayBuffer.length > 0) {
+    // Replay buffered tokens. Don't require agentRunning — agent may have already
+    // ended while client was away, and the buffer contains the full response + agent_end
+    // we need to deliver before the client calls loadConversations.
+    if (replayBuffer !== null && replayBuffer.length > 0) {
       send(ws, { type: 'agent_start' }); // clears client streamingText before replay
       for (const msg of replayBuffer) send(ws, msg);
     }
     replayBuffer = null;
     // Route all agent events to this connection
     sharedSend.fn = (p) => send(ws, p);
+    // Track active ws for cleanup race detection
+    activeWs = ws;
 
     const listener = (event: AgentSessionEvent) => handleAgentEvent(event, stripThink, canvas, cal, () => currentPersona);
     addModeListener(trackedMode, listener);
@@ -752,6 +761,14 @@ export function createGateway(server: Server): WebSocketServer {
     const cleanup = () => {
       clearInterval(heartbeat);
       console.log(`[gateway] Client disconnected (clients: ${wss.clients.size})`);
+      // If a newer connection has already taken over (activeWs !== this ws), this
+      // close event is from a stale socket — don't seed replay buffer or swap sharedSend,
+      // doing so would redirect the live agent stream into a dead buffer.
+      const isStaleClose = activeWs !== ws;
+      if (isStaleClose) {
+        console.log('[gateway] Stale close ignored — newer connection already active');
+        return;
+      }
       if (agentRunning) {
         // Seed replay buffer with text already streamed to the client so the
         // reconnected client receives the full response, not just the second half.
@@ -760,10 +777,12 @@ export function createGateway(server: Server): WebSocketServer {
         sharedSend.fn = (p) => { replayBuffer?.push(p); };
         orphanedListener = listener;
         orphanedMode = trackedMode;
+        activeWs = null;
         console.log('[gateway] Agent running — keeping listener alive for reconnect');
       } else {
         removeModeListener(trackedMode, listener);
         sharedSend.fn = () => {};
+        activeWs = null;
       }
       if (wss.clients.size === 0 && !agentRunning) {
         setTimeout(() => {
