@@ -45,19 +45,36 @@ Each ships with a default name, emoji, and character. Rename them and tune the p
 
 ## 🐦 Tracker — Daily rhythm and reflection
 
-<p align="center">
-  <img src="docs/screenshots/tracker-haiku.png" alt="Tracker haiku" width="175">
-  &nbsp;
-  <img src="docs/screenshots/tracker-phrase and calendar.png" alt="Tracker phrase and calendar" width="175">
-  &nbsp;
-  <img src="docs/screenshots/tracker todo and rhythms.png" alt="Tracker todos and rhythms" width="175">
-</p>
+<table>
+<tr>
+<td width="185" valign="top"><img src="docs/screenshots/tracker-phrase and calendar.png" alt="Tracker phrase and calendar" width="170"></td>
+<td valign="top">
 
-- **Weekly phrase** — a short line to sit with and return to through the week
-- **Calendar** — pulls in Google Calendar events so the day has context and shape
-- **To-dos** — p1 / p2 / p3 priorities; incomplete tasks carry forward automatically
-- **Rhythms** — recurring commitments across any cadence: daily, weekly, monthly, yearly
-- **Haiku** — three lines written fresh every evening as a reflective practice for the day
+**Weekly phrase** — a short line to sit with and return to through the week
+
+**Calendar** — pulls in Google Calendar events so the day has context and shape
+
+</td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/screenshots/tracker todo and rhythms.png" alt="Tracker todos and rhythms" width="170"></td>
+<td valign="top">
+
+**To-dos** — p1 / p2 / p3 priorities; incomplete tasks carry forward automatically
+
+**Rhythms** — recurring commitments across any cadence: daily, every N days, every N weeks, weekly, monthly, annual
+
+</td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/screenshots/tracker-haiku.png" alt="Tracker haiku" width="170"></td>
+<td valign="top">
+
+**Haiku** — three lines written fresh every evening as a reflective practice for the day
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -91,6 +108,10 @@ The Chat tab lets you talk to either. Switch between them at any point.
 
 Shapeshifter's default output is not a chat reply. It's a persistent, structured workspace saved to your vault — a live app rendered inside the tab.
 
+</td>
+</tr>
+</table>
+
 Canvases are built from 10 composable blocks:
 
 | Block | What it renders |
@@ -108,10 +129,6 @@ Canvases are built from 10 composable blocks:
 
 The `html` block is where it becomes a playground. Write a self-contained React component, a chart, a custom layout — anything. Shapeshifter generates it, the app renders it live.
 
-</td>
-</tr>
-</table>
-
 ---
 
 ## 🐝 Keeper — Personal wiki
@@ -127,11 +144,11 @@ The wiki follows a Johnny Decimal structure so nothing gets lost in an undiffere
 
 `01-identity` · `02-knowledge` · `03-projects` · `04-areas` · `05-relationships` · `06-creativity` · `07-systems` · `08-resources` · `09-media` · `10-events` · `11-questions` · `99-archive`
 
-<img src="docs/screenshots/keeper-notes.png" alt="Keeper raw captures" width="180">
-&nbsp;
-<img src="docs/screenshots/keeper-web.png" alt="Keeper knowledge graph" width="180">
-
 </td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/screenshots/keeper-notes.png" alt="Keeper raw captures" width="240"></td>
+<td valign="top"><img src="docs/screenshots/keeper-web.png" alt="Keeper knowledge graph" width="240"></td>
 </tr>
 </table>
 
