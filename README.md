@@ -2,7 +2,7 @@
   <img src="docs/screenshots/logo.png" alt="Companions logo" width="160">
 </p>
 
-<h1 align="center">Companions</h1>
+<h1 align="center">compAnIons</h1>
 
 <p align="center"><strong>Self-hosted, four purpose-built AI helpers for organisation, creativity, and reflection.</strong></p>
 
@@ -182,7 +182,7 @@ Change the model any time from the dashboard — no restart needed.
 
 ### Running fully local on Apple Silicon
 
-Companions runs well on Apple Silicon with [omlx](https://omlx.dev) — an OpenAI-compatible inference server built for Apple's unified memory architecture.
+Companions runs well (for the cost of speed) on Apple Silicon with [omlx](https://omlx.dev) — an OpenAI-compatible inference server built for Apple's unified memory architecture.
 
 **Chat model:** `Qwen3.6 35B A3B 4bit` — a mixture-of-experts model with 35B total parameters and ~3.6B active per token. The 4-bit quantisation fits comfortably in 32 GB of unified memory (M1 Max) with room to spare, while the MoE architecture keeps reasoning quality high despite the reduced footprint.
 
