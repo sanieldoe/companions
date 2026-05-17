@@ -51,7 +51,21 @@ import { queryKnowledge } from "./knowledge/query.js";
 import { getLatestCalDigest } from "./cron.js";
 import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent, type CalEventData } from "./calendar.js";
 
-const HEARTBEAT_MS = 30_000;
+const HEARTBEAT_MS = 60_000;
+
+// Tracks whether the agent is actively generating — used to prevent
+// heartbeat kills and premature aborts while the user is backgrounded.
+let agentRunning = false;
+
+// Shared send function — all listeners route through this so the target ws can be
+// swapped on reconnect without re-registering the listener.
+const sharedSend: { fn: (payload: Record<string, unknown>) => void } = { fn: () => {} };
+// Buffer accumulated while the client is backgrounded (agentRunning but no ws)
+let replayBuffer: Record<string, unknown>[] | null = null;
+// Listener kept alive across a client disconnect so the stream isn't interrupted
+let orphanedListener: ((event: AgentSessionEvent) => void) | null = null;
+let orphanedMode: string | null = null;
+
 const MAX_PAYLOAD_BYTES = 20 * 1024 * 1024;
 
 const IMAGE_MIME_PREFIXES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"];
@@ -275,7 +289,6 @@ async function processCalAction(tag: string, json: string, wss: WebSocketServer)
 
 /** Map Pi SDK events to WebSocket protocol messages. */
 function handleAgentEvent(
-  ws: WebSocket,
   event: AgentSessionEvent,
   stripThink: (s: string) => string,
   canvas: { process: (s: string) => string; flush: () => string },
@@ -284,30 +297,32 @@ function handleAgentEvent(
 ): void {
   switch (event.type) {
     case "agent_start":
-      send(ws, { type: "agent_start" });
+      agentRunning = true;
+      sharedSend.fn({ type: "agent_start" });
       break;
 
     case "message_update": {
       const sub = (event as any).assistantMessageEvent;
       if (sub?.type === "thinking_start") {
-        send(ws, { type: "agent_thinking" });
+        sharedSend.fn({ type: "agent_thinking" });
       } else if (sub?.type === "thinking_delta" || sub?.type === "reasoning_delta") {
         // Drop reasoning/thinking deltas — don't forward to client
       } else if (sub?.type === "text_delta" && typeof sub.delta === "string") {
         const thinkStripped = stripThink(sub.delta);
         const visible = cal.process(canvas.process(thinkStripped));
-        if (visible) send(ws, { type: "message_update", text: visible });
+        if (visible) sharedSend.fn({ type: "message_update", text: visible });
       }
       break;
     }
 
     case "agent_end": {
+      agentRunning = false;
       // Flush lookahead buffers — canvas first (inner), then cal (outer)
       const canvasTail = canvas.flush();
       const calTail = cal.flush();
       const tail = calTail + canvasTail;
-      if (tail) send(ws, { type: "message_update", text: tail });
-      send(ws, { type: "agent_end", persona: getPersona() });
+      if (tail) sharedSend.fn({ type: "message_update", text: tail });
+      sharedSend.fn({ type: "agent_end", persona: getPersona() });
       break;
     }
 
@@ -603,7 +618,23 @@ export function createGateway(server: Server): WebSocketServer {
       );
     });
     let currentPersona = 'mentor';
-    const listener = (event: AgentSessionEvent) => handleAgentEvent(ws, event, stripThink, canvas, cal, () => currentPersona);
+
+    // ── Reconnect: resume any in-progress stream ──────────────────────────────
+    // Remove orphaned listener from previous connection (kept alive during agent run)
+    if (orphanedListener && orphanedMode) {
+      removeModeListener(orphanedMode as Mode, orphanedListener);
+      orphanedListener = null;
+      orphanedMode = null;
+    }
+    // Replay buffered tokens if agent is still running
+    if (replayBuffer !== null && agentRunning) {
+      for (const msg of replayBuffer) send(ws, msg);
+    }
+    replayBuffer = null;
+    // Route all agent events to this connection
+    sharedSend.fn = (p) => send(ws, p);
+
+    const listener = (event: AgentSessionEvent) => handleAgentEvent(event, stripThink, canvas, cal, () => currentPersona);
     addModeListener(trackedMode, listener);
     // Vision listener is registered per-prompt in the vision path, not at connection time.
 
@@ -612,6 +643,12 @@ export function createGateway(server: Server): WebSocketServer {
     let isAlive = true;
     const heartbeat = setInterval(() => {
       if (!isAlive) {
+        if (agentRunning) {
+          // Client backgrounded while agent is responding — keep alive, reset probe.
+          isAlive = false;
+          if (ws.readyState === WebSocket.OPEN) ws.ping();
+          return;
+        }
         console.log("[gateway] Heartbeat timeout — closing dead socket");
         ws.terminate();
         return;
@@ -639,16 +676,24 @@ export function createGateway(server: Server): WebSocketServer {
 
     const cleanup = () => {
       clearInterval(heartbeat);
-      removeModeListener(trackedMode, listener);
       console.log(`[gateway] Client disconnected (clients: ${wss.clients.size})`);
-      // Abort any queued/in-progress session work when the last client leaves.
-      // Prevents stale prompts from backing up the queue for the next connection.
-      if (wss.clients.size === 0) {
+      if (agentRunning) {
+        // Keep listener alive so agent_end fires correctly — buffer tokens for replay
+        replayBuffer = [];
+        sharedSend.fn = (p) => { replayBuffer?.push(p); };
+        orphanedListener = listener;
+        orphanedMode = trackedMode;
+        console.log('[gateway] Agent running — keeping listener alive for reconnect');
+      } else {
+        removeModeListener(trackedMode, listener);
+        sharedSend.fn = () => {};
+      }
+      if (wss.clients.size === 0 && !agentRunning) {
         setTimeout(() => {
-          if (wss.clients.size === 0) {
+          if (wss.clients.size === 0 && !agentRunning) {
             getSession()?.abort().catch(() => {});
           }
-        }, 5000);
+        }, 30_000);
       }
     };
 
