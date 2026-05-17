@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { getItem, setItem } from '../lib/storage';
 import * as Linking from 'expo-linking';
 import { useStore } from '../lib/store';
 
 export default function Index() {
-  const [target, setTarget] = useState<'/(tabs)/lenda' | '/setup' | null>(null);
+  const [target, setTarget] = useState<'/(tabs)/tracker' | '/setup' | null>(null);
   const setCredentials = useStore((s) => s.setCredentials);
 
   useEffect(() => {
@@ -24,10 +24,10 @@ export default function Index() {
           });
           if (r.ok) {
             const { token } = await r.json() as { token: string };
-            await SecureStore.setItemAsync('serverUrl', wsUrl);
-            await SecureStore.setItemAsync('token', token);
+            await setItem('serverUrl', wsUrl);
+            await setItem('token', token);
             setCredentials(wsUrl, token);
-            setTarget('/(tabs)/lenda');
+            setTarget('/(tabs)/tracker');
             return;
           }
         } catch {}
@@ -43,9 +43,9 @@ export default function Index() {
     const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
 
     // Normal startup: check stored credentials
-    SecureStore.getItemAsync('serverUrl').then((url) =>
-      SecureStore.getItemAsync('token').then((token) => {
-        setTarget(url && token ? '/(tabs)/lenda' : '/setup');
+    getItem('serverUrl').then((url) =>
+      getItem('token').then((token) => {
+        setTarget(url && token ? '/(tabs)/tracker' : '/setup');
       })
     );
 

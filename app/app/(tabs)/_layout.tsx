@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Keyboard, Text } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem } from '../../lib/storage';
 import { useTheme } from '../../lib/theme';
 import { useStore, getModeEmoji } from '../../lib/store';
 import { wsService } from '../../lib/ws';
@@ -24,8 +23,8 @@ export default function TabsLayout() {
   const setModes = useStore((s) => s.setModes);
   const modes = useStore((s) => s.modes);
 
-  // Load credentials once for the whole tab layout — ensures all tabs
-  // can reach the server without needing to visit specific tabs first.
+  // Load credentials once for the whole tab layout — ensures Cal and Hive
+  // can reach the server without needing to visit Saniel/Ruse first.
   useEffect(() => {
     async function init() {
       // Restore cached modes immediately so tab icons show before WS connects
@@ -33,8 +32,8 @@ export default function TabsLayout() {
       if (cached) {
         try { setModes(JSON.parse(cached)); } catch {}
       }
-      const storedUrl = await SecureStore.getItemAsync('serverUrl');
-      const storedToken = await SecureStore.getItemAsync('token');
+      const storedUrl = await getItem('serverUrl');
+      const storedToken = await getItem('token');
       if (!storedUrl || !storedToken) {
         router.replace('/setup');
         return;
@@ -48,7 +47,7 @@ export default function TabsLayout() {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    SecureStore.getItemAsync('isDark').then((v) => {
+    getItem('isDark').then((v) => {
       if (v !== null) setIsDark(v === 'true');
     });
   }, []);

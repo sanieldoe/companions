@@ -5,7 +5,7 @@ import {
   ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { getItem } from '../lib/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useStore, getAccent, MODE_EMOJIS, MODE_ACCENTS, getModeName, getModeEmoji, ConversationMeta } from '../lib/store';
@@ -56,7 +56,7 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
   // Active persona toggle (Mentor tab can summon Shapeshifter)
   const [activePersona, setActivePersona] = useState<'mentor' | 'shapeshifter'>(persona);
 
-  // Project picker state (Mentor only)
+  // Project picker state (Saniel only)
   const [projectPickerVisible, setProjectPickerVisible] = useState(false);
   const [projectTree, setProjectTree] = useState<ProjectNode[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
@@ -77,8 +77,8 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
 
   useEffect(() => {
     async function init() {
-      const storedUrl = await SecureStore.getItemAsync('serverUrl');
-      const storedToken = await SecureStore.getItemAsync('token');
+      const storedUrl = await getItem('serverUrl');
+      const storedToken = await getItem('token');
       if (!storedUrl || !storedToken) { router.replace('/setup'); return; }
       setCredentials(storedUrl, storedToken);
       wsService.connect();
@@ -94,7 +94,7 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
   useFocusEffect(
     useCallback(() => {
       modeSynced.current = false;
-      // If Shapeshifter canvas navigated here requesting Shapeshifter persona, honour it once
+      // If Ruse canvas navigated here requesting Ruse persona, honour it once
       let effectivePersona = persona;
       if (requestedChatPersona) {
         effectivePersona = requestedChatPersona;
@@ -121,9 +121,9 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
     }
     if (!modeSynced.current) return;
     if (currentMode === 'mentor') {
-      router.replace('/(tabs)/saniel');
+      router.replace('/(tabs)/mentor');
     } else if (currentMode === 'shapeshifter') {
-      router.replace('/(tabs)/ruse');
+      router.replace('/(tabs)/shapeshifter');
     }
   }, [currentMode, persona]);
 
@@ -234,13 +234,13 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
       onPanResponderRelease: (_, g) => {
         if (Math.abs(g.dx) < 40) return;
         if (persona === 'mentor' && g.dx > 0) {
-          router.replace('/(tabs)/lenda');   // Tracker is left of Mentor
+          router.replace('/(tabs)/tracker');   // Tracker is left of Mentor
         } else if (persona === 'mentor' && g.dx < 0) {
-          router.replace('/(tabs)/ruse');
+          router.replace('/(tabs)/shapeshifter');
         } else if (persona === 'shapeshifter' && g.dx > 0) {
-          router.replace('/(tabs)/saniel');
+          router.replace('/(tabs)/mentor');
         } else if (persona === 'shapeshifter' && g.dx < 0) {
-          router.replace('/(tabs)/hive');    // Keeper is right of Shapeshifter
+          router.replace('/(tabs)/keeper');    // Keeper is right of Shapeshifter
         }
       },
     })

@@ -24,8 +24,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { router, useFocusEffect } from 'expo-router';
+import { impact } from '../../lib/haptics';
 import { useTheme } from '../../lib/theme';
 import { apiFetch } from '../../lib/api';
 import { useStore, MODE_EMOJIS, MODE_NAMES, getModeName, getModeEmoji } from '../../lib/store';
@@ -498,6 +498,11 @@ export default function LendaScreen() {
 
   useEffect(() => { if (connected) { loadData(); fetchDueRhythms(); } }, [connected, loadData, fetchDueRhythms]);
 
+  // Fallback for web: reload on focus in case the connected effect fired before the component settled
+  useFocusEffect(useCallback(() => {
+    if (connected) { loadData(); fetchDueRhythms(); }
+  }, [connected, loadData, fetchDueRhythms]));
+
   useEffect(() => {
     return () => {
       if (connectPollRef.current) {
@@ -565,7 +570,7 @@ export default function LendaScreen() {
     try {
       await saveJournal(newHaiku, tasks);
       setHaiku(newHaiku);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await impact();
     } catch {
       // silently fail
     } finally {
@@ -577,7 +582,7 @@ export default function LendaScreen() {
   // ── Tasks ───────────────────────────────────────────────────────────────────
 
   const toggleTask = useCallback(async (index: number) => {
-    await Haptics.selectionAsync();
+    await impact();
     const updated = tasks.map((t, i) => i === index ? { ...t, done: !t.done } : t);
     setTasks(updated);
     await saveJournal(haiku, updated);
@@ -608,7 +613,7 @@ export default function LendaScreen() {
   }, [editingTaskIndex, editingText, tasks, haiku, saveJournal]);
 
   const deleteTask = useCallback(async (index: number) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await impact();
     const updated = tasks.filter((_, i) => i !== index);
     setTasks(updated);
     setEditingTaskIndex(null);
@@ -616,7 +621,7 @@ export default function LendaScreen() {
   }, [tasks, haiku, saveJournal]);
 
   const cyclePriority = useCallback(async (index: number) => {
-    await Haptics.selectionAsync();
+    await impact();
     const current = tasks[index].priority;
     const next: 1 | 2 | 3 | undefined = current === undefined ? 1 : current === 1 ? 2 : current === 2 ? 3 : undefined;
     const updated = tasks.map((t, i) => i === index ? { ...t, priority: next } : t);
@@ -634,7 +639,7 @@ export default function LendaScreen() {
   }, []);
 
   const deleteInboxTask = useCallback(async (index: number) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await impact();
     const updated = inboxTasks.filter((_, i) => i !== index);
     setInboxTasks(updated);
     await saveInbox(updated);
@@ -643,20 +648,20 @@ export default function LendaScreen() {
   const clearDone = useCallback(async () => {
     const remaining = tasks.filter(t => !t.done);
     if (remaining.length === tasks.length) return;
-    await Haptics.selectionAsync();
+    await impact();
     setTasks(remaining);
     await saveJournal(haiku, remaining);
   }, [tasks, haiku, saveJournal]);
 
   const toggleInboxTask = useCallback(async (index: number) => {
-    await Haptics.selectionAsync();
+    await impact();
     const updated = inboxTasks.map((t, i) => i === index ? { ...t, done: !t.done } : t);
     setInboxTasks(updated);
     await saveInbox(updated);
   }, [inboxTasks, saveInbox]);
 
   const moveToToday = useCallback(async (index: number) => {
-    await Haptics.selectionAsync();
+    await impact();
     const task = inboxTasks[index];
     const updatedInbox = inboxTasks.filter((_, i) => i !== index);
     const updatedTasks = [...tasks, { text: task.text, done: false }];
@@ -672,7 +677,7 @@ export default function LendaScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reset', style: 'destructive', onPress: async () => {
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          await impact();
           setTasks([]);
           await saveJournal(haiku, []);
         }},
@@ -750,7 +755,7 @@ export default function LendaScreen() {
       onMoveShouldSetPanResponder: (_, g) =>
         Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
       onPanResponderRelease: (_, g) => {
-        if (g.dx < -40) router.replace('/(tabs)/saniel');
+        if (g.dx < -40) router.replace('/(tabs)/mentor');
       },
     })
   ).current;

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -32,6 +33,13 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const el = document.getElementById('root');
+      if (el) (el as HTMLElement).style.zoom = '2';
+    }
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useCallback } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableWithoutFeedback, ToastAndroid } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableWithoutFeedback, ToastAndroid, Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import Markdown from 'react-native-markdown-display';
 import { Message, AgentState, MODE_ACCENTS, useStore, getModeName, getModeEmoji } from '../lib/store';
@@ -112,7 +112,9 @@ export default function MessageList({ messages, streamingText, accent, agentStat
             )}
             <TouchableWithoutFeedback onLongPress={() => {
               Clipboard.setStringAsync(msg.text);
-              ToastAndroid.show('Copied', ToastAndroid.SHORT);
+              if (Platform.OS === 'android') {
+                ToastAndroid.show('Copied', ToastAndroid.SHORT);
+              }
             }}>
               <View style={bubbleStyle}>
                 {isUser ? (

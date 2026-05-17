@@ -230,20 +230,20 @@ export default function WikiScreen() {
         if (idx === -1) return;
 
         if (g.dx < 0) {
-          // swipe left → next folder (Keeper is rightmost, no spill)
+          // swipe left → next folder (Hive is rightmost, no spill)
           if (idx < TOP_FOLDERS.length - 1) {
             const next = TOP_FOLDERS[idx + 1];
             setTopFolder(next);
             setPathStack([next]);
           }
         } else {
-          // swipe right → prev folder or spill to Shapeshifter
+          // swipe right → prev folder or spill to Ruse
           if (idx > 0) {
             const next = TOP_FOLDERS[idx - 1];
             setTopFolder(next);
             setPathStack([next]);
           } else {
-            router.replace('/(tabs)/ruse');
+            router.replace('/(tabs)/shapeshifter');
           }
         }
       },
@@ -686,7 +686,7 @@ export default function WikiScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Keeper graph mode — replaces content area */}
+      {/* Hive graph mode — replaces content area */}
       {hiveMode && serverUrl && token ? (
         <GraphView
           serverUrl={serverUrl}
@@ -866,7 +866,7 @@ export default function WikiScreen() {
 
       </View>{/* end content area */}
 
-      {/* FAB row — hidden in Keeper graph mode */}
+      {/* FAB row — hidden in Hive graph mode */}
       <View style={[styles.fabRow, hiveMode && { display: 'none' }]}>
         <TouchableOpacity
           style={[styles.fab, { backgroundColor: theme.surface, borderColor: theme.border }]}

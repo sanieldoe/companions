@@ -7,8 +7,7 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import { pickFile } from '../lib/filePicker';
 import { useTheme } from '../lib/theme';
 
 export interface AttachedFile {
@@ -32,19 +31,9 @@ export default function InputBar({ accent, isStreaming, onSend, onAbort }: Input
   const theme = useTheme();
 
   async function handlePickFile() {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ['text/*', 'application/json', 'application/javascript',
-             'application/x-python', 'application/pdf', 'image/*', '*/*'],
-      copyToCacheDirectory: true,
-    });
-    if (result.canceled || !result.assets?.length) return;
-    const asset = result.assets[0];
-    const mime = asset.mimeType ?? '';
-    const isImage = mime.startsWith('image/');
-    const content = await FileSystem.readAsStringAsync(asset.uri, {
-      encoding: isImage ? 'base64' : 'utf8',
-    } as any);
-    setFile({ name: asset.name, content, mime });
+    const picked = await pickFile();
+    if (!picked) return;
+    setFile({ name: picked.name, content: picked.base64, mime: picked.mimeType });
   }
 
   function handleSend() {

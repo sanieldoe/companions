@@ -51,8 +51,12 @@ async function main() {
   // Serve web app (built from web/dist) — unauthenticated
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const webDist = path.resolve(__dirname, '../../web/dist');
-  app.use('/app', express.static(webDist));
-  app.get('/app/*', (_req, res) => res.sendFile(path.join(webDist, 'index.html')));
+  const appDist = path.resolve(__dirname, '../../app/dist');
+  app.use('/app', express.static(appDist));
+  app.get('/app/*', (_req, res) => res.sendFile(path.join(appDist, 'index.html')));
+  // Expo web build uses absolute paths for /_expo and /assets
+  app.use('/_expo', express.static(path.join(appDist, '_expo')));
+  app.use('/assets', express.static(path.join(appDist, 'assets')));
   app.get('/dashboard', (_req, res) => res.sendFile(path.join(webDist, 'dashboard.html')));
 
   // Install API endpoints must mount before the HTML catch-all for /install/*

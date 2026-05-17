@@ -26,7 +26,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.companions.app"
+      "bundleIdentifier": "com.sandoe.companion"
     },
     "plugins": [
       "expo-router",
@@ -40,7 +40,13 @@
       "expo-font"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "baseUrl": "/app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "router": {},
