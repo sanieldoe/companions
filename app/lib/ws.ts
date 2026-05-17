@@ -15,7 +15,7 @@ type ServerEvent =
   | { type: 'calendar_result'; action: string; ok: boolean; eventId?: string; link?: string; error?: string };
 
 type ClientMessage =
-  | { type: 'message'; text: string; autoRoute?: boolean; project?: string; persona?: 'mentor' | 'shapeshifter' }
+  | { type: 'message'; text: string; autoRoute?: boolean; project?: string; persona?: 'mentor' | 'shapeshifter'; conversationId?: string; fileName?: string; fileContent?: string; fileMime?: string }
   | { type: 'switch_mode'; mode: string }
   | { type: 'abort' };
 

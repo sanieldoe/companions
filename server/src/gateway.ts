@@ -57,6 +57,13 @@ const HEARTBEAT_MS = 60_000;
 // heartbeat kills and premature aborts while the user is backgrounded.
 let agentRunning = false;
 
+// Server-side response accumulation — saves completed responses even when client is disconnected
+let responseAccumulator = '';
+let trackedConvId: string | null = null;
+let trackedConvSlug = 'general';
+let trackedUserMessage = '';
+let trackedPersona = 'mentor';
+
 // Shared send function — all listeners route through this so the target ws can be
 // swapped on reconnect without re-registering the listener.
 const sharedSend: { fn: (payload: Record<string, unknown>) => void } = { fn: () => {} };
@@ -81,7 +88,7 @@ function isImageFile(fileName?: string, fileMime?: string): boolean {
 }
 
 type ClientMessage =
-  | { type: "message";     text?: string; project?: string; persona?: "mentor" | "shapeshifter"; fileName?: string; fileContent?: string; fileMime?: string }
+  | { type: "message";     text?: string; project?: string; persona?: "mentor" | "shapeshifter"; fileName?: string; fileContent?: string; fileMime?: string; conversationId?: string }
   | { type: "switch_mode"; mode?: string }
   | { type: "abort" };
 
@@ -287,6 +294,48 @@ async function processCalAction(tag: string, json: string, wss: WebSocketServer)
   broadcastAll(wss, { type: 'calendar_result', action: tag, ...result });
 }
 
+async function saveResponseToConvo(
+  slug: string,
+  convId: string,
+  userText: string,
+  assistantText: string,
+  persona: string,
+): Promise<void> {
+  const dir = path.join(VAULT_ROOT, 'projects', slug, 'convos');
+  const filePath = path.join(dir, `${convId}.json`);
+
+  let messages: Array<Record<string, unknown>> = [];
+  try {
+    const raw = await fs.promises.readFile(filePath, 'utf8');
+    messages = JSON.parse(raw);
+  } catch { /* new conversation — start empty */ }
+
+  // If the last message is already an assistant response, the client already saved it — skip.
+  const lastMsg = messages[messages.length - 1];
+  if (lastMsg?.role === 'assistant') {
+    console.log(`[gateway] Response already saved by client for ${convId}, skipping`);
+    return;
+  }
+
+  // Add user message if missing (e.g. _syncToServer failed before disconnect)
+  const hasUserMsg = messages.some(m => m.role === 'user' && m.text === userText);
+  if (!hasUserMsg && userText.trim()) {
+    messages.push({ id: `user-${Date.now() - 1}`, role: 'user', text: userText, timestamp: Date.now() - 1 });
+  }
+
+  messages.push({
+    id: `assistant-${Date.now()}`,
+    role: 'assistant',
+    text: assistantText,
+    timestamp: Date.now(),
+    persona,
+  });
+
+  await fs.promises.mkdir(dir, { recursive: true });
+  await fs.promises.writeFile(filePath, JSON.stringify(messages, null, 2));
+  console.log(`[gateway] Server-saved response to ${slug}/${convId} (${assistantText.length} chars)`);
+}
+
 /** Map Pi SDK events to WebSocket protocol messages. */
 function handleAgentEvent(
   event: AgentSessionEvent,
@@ -298,6 +347,7 @@ function handleAgentEvent(
   switch (event.type) {
     case "agent_start":
       agentRunning = true;
+      responseAccumulator = '';
       sharedSend.fn({ type: "agent_start" });
       break;
 
@@ -310,7 +360,10 @@ function handleAgentEvent(
       } else if (sub?.type === "text_delta" && typeof sub.delta === "string") {
         const thinkStripped = stripThink(sub.delta);
         const visible = cal.process(canvas.process(thinkStripped));
-        if (visible) sharedSend.fn({ type: "message_update", text: visible });
+        if (visible) {
+          responseAccumulator += visible;
+          sharedSend.fn({ type: "message_update", text: visible });
+        }
       }
       break;
     }
@@ -321,7 +374,16 @@ function handleAgentEvent(
       const canvasTail = canvas.flush();
       const calTail = cal.flush();
       const tail = calTail + canvasTail;
-      if (tail) sharedSend.fn({ type: "message_update", text: tail });
+      if (tail) {
+        responseAccumulator += tail;
+        sharedSend.fn({ type: "message_update", text: tail });
+      }
+      // Save to disk regardless of client connectivity so loadConversations picks it up on reconnect
+      if (trackedConvId && responseAccumulator.trim()) {
+        saveResponseToConvo(trackedConvSlug, trackedConvId, trackedUserMessage, responseAccumulator.trim(), getPersona()).catch(
+          (err) => console.warn('[gateway] Server-side save failed:', err)
+        );
+      }
       sharedSend.fn({ type: "agent_end", persona: getPersona() });
       break;
     }
@@ -392,6 +454,11 @@ async function handleClientMessage(
       const currentMode = getCurrentMode();
       // Allow client to override persona per-message (e.g. Shapeshifter summoned into Mentor tab)
       const effectivePersona = msg.persona ?? currentMode;
+      // Track context for server-side response save on agent_end
+      if (msg.conversationId) trackedConvId = msg.conversationId;
+      trackedConvSlug = msg.project ?? 'general';
+      trackedUserMessage = msg.text ?? '';
+      trackedPersona = effectivePersona;
 
       // ── Vision path: direct Ollama streaming call with think:false ───────────
       // Bypasses Pi SDK session to avoid gemma4's extended thinking phase,

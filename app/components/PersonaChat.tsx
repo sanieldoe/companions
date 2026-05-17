@@ -103,7 +103,9 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
       }
       if (switchModeTimer.current) clearTimeout(switchModeTimer.current);
       switchModeTimer.current = setTimeout(() => {
-        wsService.send({ type: 'switch_mode', mode: effectivePersona });
+        if (useStore.getState().agentState === 'idle') {
+          wsService.send({ type: 'switch_mode', mode: effectivePersona });
+        }
       }, 150);
       return () => {
         if (switchModeTimer.current) clearTimeout(switchModeTimer.current);
@@ -132,8 +134,8 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
     const fileIcon = isImage ? '🖼️' : '📄';
     const displayText = file ? `${text ? text + '\n' : ''}${fileIcon} ${file.name}`.trim() : text;
     addUserMessage(displayText);
-    wsService.send({ type: 'message', text, project: currentProjectSlug, persona: activePersona, fileName: file?.name, fileContent: file?.content, fileMime: file?.mime });
-  }, [addUserMessage, currentProjectSlug, activePersona]);
+    wsService.send({ type: 'message', text, project: currentProjectSlug, persona: activePersona, fileName: file?.name, fileContent: file?.content, fileMime: file?.mime, conversationId: activeConversationId ?? undefined });
+  }, [addUserMessage, currentProjectSlug, activePersona, activeConversationId]);
 
   const handleAbort = useCallback(() => { wsService.send({ type: 'abort' }); }, []);
 
