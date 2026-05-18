@@ -551,9 +551,10 @@ async function handleClientMessage(
       // ── Text file: inject content as context block ─────────────────────────
       if (msg.fileContent && msg.fileName) {
         const MAX_FILE_CHARS = 40_000;
-        const truncated = msg.fileContent.length > MAX_FILE_CHARS
-          ? msg.fileContent.slice(0, MAX_FILE_CHARS) + "\n\n[File truncated]"
-          : msg.fileContent;
+        const decoded = Buffer.from(msg.fileContent, 'base64').toString('utf-8');
+        const truncated = decoded.length > MAX_FILE_CHARS
+          ? decoded.slice(0, MAX_FILE_CHARS) + "\n\n[File truncated]"
+          : decoded;
         promptText = `<file name="${msg.fileName}">\n${truncated}\n</file>\n\n${promptText}`;
       }
 

@@ -273,7 +273,9 @@ function loadSkillBody(mode: Mode): string {
 - \`[mentor]\` → respond as Mentor
 - \`[shapeshifter]\` → respond as Shapeshifter
 
-Never mention the prefix tags. Simply read the tag, adopt that persona for your response, and strip the tag from your awareness of the message.`,
+Never mention the prefix tags. Simply read the tag, adopt that persona for your response, and strip the tag from your awareness of the message.
+
+**Conversation memory:** Prior messages in this conversation are already loaded in your context. When the user asks what you discussed, recall directly from the conversation history above — do not search for files to answer memory questions.`,
       `---`,
       mentorBlock,
       `---`,

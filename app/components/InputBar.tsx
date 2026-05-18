@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { pickFile } from '../lib/filePicker';
 import { useTheme } from '../lib/theme';
@@ -31,9 +32,15 @@ export default function InputBar({ accent, isStreaming, onSend, onAbort }: Input
   const theme = useTheme();
 
   async function handlePickFile() {
-    const picked = await pickFile();
-    if (!picked) return;
-    setFile({ name: picked.name, content: picked.base64, mime: picked.mimeType });
+    try {
+      const picked = await pickFile();
+      if (!picked) return;
+      setFile({ name: picked.name, content: picked.base64, mime: picked.mimeType });
+    } catch (err: any) {
+      const message = err?.message ?? String(err);
+      console.error('[InputBar] pickFile failed:', err);
+      Alert.alert("Couldn't attach file", message || 'Something went wrong reading the file.');
+    }
   }
 
   function handleSend() {
