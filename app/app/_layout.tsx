@@ -34,12 +34,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const el = document.getElementById('root');
-      if (el) (el as HTMLElement).style.zoom = '2';
-    }
-  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

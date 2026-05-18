@@ -34,6 +34,7 @@ interface CompanionStore {
   serverUrl: string | null;
   token: string | null;
   connected: boolean;
+  disconnectedAt: number | null;
   agentState: AgentState;
 
   // Conversation
@@ -160,6 +161,7 @@ export const useStore = create<CompanionStore>((set, get) => ({
   serverUrl: null,
   token: null,
   connected: false,
+  disconnectedAt: null,
   agentState: 'idle',
 
   messages: [],
@@ -193,7 +195,10 @@ export const useStore = create<CompanionStore>((set, get) => ({
   },
 
   setConnected(v) {
-    set({ connected: v });
+    set(v
+      ? { connected: true, disconnectedAt: null }
+      : (state) => ({ connected: false, disconnectedAt: state.disconnectedAt ?? Date.now() })
+    );
   },
 
   setAgentState(v) {
@@ -552,10 +557,10 @@ export const MODE_EMOJIS: Record<string, string> = {
 };
 
 export const MODE_NAMES: Record<string, string> = {
-  mentor: 'Sage',
-  shapeshifter: 'Creato',
-  keeper: 'Loom',
-  tracker: 'Tick',
+  mentor: 'Mentor',
+  shapeshifter: 'Shapeshifter',
+  keeper: 'Keeper',
+  tracker: 'Tracker',
 };
 
 export function getModeName(mode: string, modes: ModeInfo[]): string {

@@ -13,10 +13,10 @@ const MODES = ["mentor", "shapeshifter", "keeper", "tracker"] as const;
 type Mode = (typeof MODES)[number];
 
 const DEFAULTS: Record<Mode, { name: string; emoji: string }> = {
-  mentor: { name: "Sage", emoji: "🐢" },
-  shapeshifter: { name: "Creato", emoji: "🦞" },
-  keeper: { name: "Loom", emoji: "🐝" },
-  tracker: { name: "Tick", emoji: "🐙" },
+  mentor: { name: "Mentor", emoji: "🐢" },
+  shapeshifter: { name: "Shapeshifter", emoji: "🦞" },
+  keeper: { name: "Keeper", emoji: "🐝" },
+  tracker: { name: "Tracker", emoji: "🐙" },
 };
 
 function parseFrontmatter(raw: string): { fm: Record<string, string>; body: string } {

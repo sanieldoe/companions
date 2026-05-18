@@ -77,6 +77,16 @@ class WsService {
     this._connect();
   }
 
+  reconnect() {
+    this._clearReconnect();
+    if (this.ws) {
+      try { this.ws.close(); } catch {}
+      this.ws = null;
+    }
+    this.isConnecting = false;
+    this._connect();
+  }
+
   disconnect() {
     this.shouldConnect = false;
     this._clearReconnect();
@@ -142,12 +152,13 @@ class WsService {
         // the full buffered response on reconnect (which begins with an injected
         // agent_start that clears streamingText cleanly). Wiping here causes the
         // visible bubble to vanish during the reconnect gap.
-        const { agentState } = useStore.getState();
+        const { agentState, disconnectedAt } = useStore.getState();
         const midStream = agentState === 'thinking' || agentState === 'talking';
+        const now = disconnectedAt ?? Date.now();
         if (midStream) {
-          useStore.setState({ connected: false });
+          useStore.setState({ connected: false, disconnectedAt: now });
         } else {
-          useStore.setState({ connected: false, agentState: 'idle', streamingText: '' });
+          useStore.setState({ connected: false, disconnectedAt: now, agentState: 'idle', streamingText: '' });
         }
         if (this.shouldConnect) {
           this._scheduleReconnect();

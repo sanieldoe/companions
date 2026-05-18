@@ -68,6 +68,8 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
 
   // True once the server has confirmed our mode — suppresses premature auto-routing
   const modeSynced = useRef(false);
+  // Guard: consume requestedChatPersona at most once per mount
+  const personaHandoffConsumed = useRef(false);
 
   const accent = getAccent(currentMode, modes);
   const theme = useTheme();
@@ -94,9 +96,11 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
   useFocusEffect(
     useCallback(() => {
       modeSynced.current = false;
-      // If Ruse canvas navigated here requesting Ruse persona, honour it once
+      // If Ruse canvas navigated here requesting Ruse persona, honour it once.
+      // Guard prevents double-fire on rapid focus events.
       let effectivePersona = persona;
-      if (requestedChatPersona) {
+      if (requestedChatPersona && !personaHandoffConsumed.current) {
+        personaHandoffConsumed.current = true;
         effectivePersona = requestedChatPersona;
         setActivePersona(requestedChatPersona);
         setRequestedChatPersona(null);
@@ -170,7 +174,9 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
           await setCurrentProject(data.slug);
         }
       }
-    } catch {} finally {
+    } catch (err: any) {
+      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+    } finally {
       setCreatingProject(false);
     }
   }, [newProjectName, createType, selectedParent, setCurrentProject, loadProjects]);
@@ -196,7 +202,9 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
             await loadProjects();
             if (slug === currentProjectSlug) await setCurrentProject(data.newSlug);
           }
-        } catch {}
+        } catch (err: any) {
+          Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+        }
       },
       'plain-text',
       currentName,
@@ -205,22 +213,37 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
 
   const handleDeleteProject = useCallback((slug: string, name: string) => {
     Alert.alert(
-      'Delete Project',
-      `"${name}" and all its conversations will be permanently deleted.`,
+      `Delete "${name}"?`,
+      '',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiFetch(`/wiki/projects/${encodeURIComponent(slug)}`, { method: 'DELETE' });
-              await loadProjects();
-              if (slug === currentProjectSlug) {
-                await setCurrentProject('general');
-                setProjectPickerVisible(false);
-              }
-            } catch {}
+          onPress: () => {
+            Alert.alert(
+              'This cannot be undone.',
+              `All conversations in "${name}" will be permanently removed.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await apiFetch(`/wiki/projects/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+                      await loadProjects();
+                      if (slug === currentProjectSlug) {
+                        await setCurrentProject('general');
+                        setProjectPickerVisible(false);
+                      }
+                    } catch (err: any) {
+                      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+                    }
+                  },
+                },
+              ],
+            );
           },
         },
       ],
@@ -287,6 +310,22 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
           </TouchableOpacity>
         )}
         <TouchableOpacity
+          onPress={() => { setSettingsSection('history'); setSettingsVisible(true); }}
+          onLongPress={() => { setSettingsSection('history'); setSettingsVisible(true); }}
+          style={styles.headerBtn}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.headerBtnLabel}>📋</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => { setSettingsSection('model'); setSettingsVisible(true); }}
+          onLongPress={() => { setSettingsSection('model'); setSettingsVisible(true); }}
+          style={styles.headerBtn}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.headerBtnLabel}>⚙️</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={toggleTheme}
           onLongPress={() => { setSettingsSection(undefined); setSettingsVisible(true); }}
           style={styles.headerBtn}
@@ -297,6 +336,13 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
       </View>
 
       <View style={styles.zoneB}>
+        {messages.length === 0 && !isStreaming && (
+          <View style={styles.emptyChat}>
+            <Text style={[styles.emptyChatHint, { color: theme.textDim }]}>
+              Send a message to start the conversation.
+            </Text>
+          </View>
+        )}
         <MessageList
           messages={messages}
           streamingText={streamingText}
@@ -567,6 +613,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   zoneC: {},
+  emptyChat: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  emptyChatHint: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.5,
+  },
   // Modal shared
   modalRoot: { flex: 1 },
   modalHeader: {

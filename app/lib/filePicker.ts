@@ -78,6 +78,11 @@ export async function pickFile(): Promise<{ name: string; mimeType: string; base
     throw new Error(`Failed to read attachment: ${readErr?.message ?? String(readErr)}`);
   }
 
+  const approxBytes = base64.length * 0.75;
+  if (approxBytes > 10 * 1024 * 1024) {
+    throw new Error('File is too large (max 10 MB). Try a smaller image or document.');
+  }
+
   return {
     name: rawName,
     mimeType: asset.mimeType ?? 'application/octet-stream',

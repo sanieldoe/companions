@@ -377,7 +377,9 @@ export default function LendaScreen() {
         body: JSON.stringify({ path: `phrases/week-${weekKey()}.md`, content: text.trim() }),
       });
       setPhraseOfWeek(text.trim());
-    } catch {}
+    } catch (err: any) {
+      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+    }
   }, []);
 
   // ── Rhythms (fetchDueRhythms declared here so it's available to the mount effect) ──
@@ -699,7 +701,9 @@ export default function LendaScreen() {
     try {
       await apiFetch(`/rhythms/${id}/complete`, { method: 'POST' });
       fetchDueRhythms();
-    } catch {}
+    } catch (err: any) {
+      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+    }
   }, [fetchDueRhythms]);
 
   const deleteRhythm = useCallback(async (id: string) => {
@@ -707,7 +711,9 @@ export default function LendaScreen() {
       await apiFetch(`/rhythms/${id}`, { method: 'DELETE' });
       fetchAllRhythms();
       fetchDueRhythms();
-    } catch {}
+    } catch (err: any) {
+      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+    }
   }, [fetchAllRhythms, fetchDueRhythms]);
 
   const saveRhythm = useCallback(async () => {
@@ -728,7 +734,9 @@ export default function LendaScreen() {
       setRhythmForm(f => ({ ...f, visible: false, title: '', description: '' }));
       fetchAllRhythms();
       fetchDueRhythms();
-    } catch {}
+    } catch (err: any) {
+      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+    }
   }, [rhythmForm, fetchAllRhythms, fetchDueRhythms]);
 
   // ── Haiku scroll handler ─────────────────────────────────────────────────────
@@ -1077,9 +1085,12 @@ export default function LendaScreen() {
                 </TouchableOpacity>
               </View>
               {dueRhythms.length === 0 && (
-                <TouchableOpacity onPress={() => { setRhythmsModalVisible(true); fetchAllRhythms(); }} style={{ paddingVertical: 6 }}>
-                  <Text style={[styles.taskText, { color: theme.textDim, opacity: 0.35 }]}>No rhythms due — tap Manage to add</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 }}>
+                  <Text style={[styles.taskText, { color: theme.textDim, opacity: 0.35, flex: 1 }]}>No rhythms due</Text>
+                  <TouchableOpacity onPress={() => { setRhythmsModalVisible(true); fetchAllRhythms(); setRhythmForm(f => ({ ...f, visible: true })); }} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: RHYTHM_COLOR + '22' }}>
+                    <Text style={{ fontSize: 12, color: RHYTHM_COLOR, fontWeight: '600' }}>+ Add rhythm</Text>
+                  </TouchableOpacity>
+                </View>
               )}
               {dueRhythms.map(r => (
                 <View key={r.id} style={styles.taskRow}>

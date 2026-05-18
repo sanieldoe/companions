@@ -248,7 +248,7 @@ export default function TrackerTab() {
           {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })}
         </span>
         <div style={{ position:'absolute', left:0, right:0, textAlign:'center', pointerEvents:'none' }}>
-          <span style={{ color:ACCENT, fontWeight:700, fontSize:18 }}>🐦 Tracker</span>
+          <span style={{ color:ACCENT, fontWeight:700, fontSize:18 }}>🐙 Tracker</span>
         </div>
         <button onClick={() => dispatch({ type:'TOGGLE_THEME' })} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:18, zIndex:1, color:theme.text }}>
           {state.isDark ? '🌙' : '☀️'}

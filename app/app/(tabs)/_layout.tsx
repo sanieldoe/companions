@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Keyboard, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,37 +44,28 @@ export default function TabsLayout() {
     init();
   }, []);
 
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-
   useEffect(() => {
     getItem('isDark').then((v) => {
       if (v !== null) setIsDark(v === 'true');
     });
   }, []);
 
-  useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => { show.remove(); hide.remove(); };
-  }, []);
-
-  const tabBarStyle = keyboardVisible
-    ? { display: 'none' as const }
-    : {
-        backgroundColor: theme.bg,
-        borderTopColor: theme.border,
-        borderTopWidth: 1,
-        height: 64 + insets.bottom,
-        paddingBottom: insets.bottom,
-        paddingTop: 8,
-      };
+  const tabBarStyle = {
+    backgroundColor: theme.bg,
+    borderTopColor: theme.border,
+    borderTopWidth: 1,
+    height: 64 + insets.bottom,
+    paddingBottom: insets.bottom,
+    paddingTop: 8,
+  };
 
   return (
     <>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarShowLabel: false,
+          tabBarShowLabel: true,
+          tabBarLabelStyle: { fontSize: 10 },
           tabBarStyle,
         }}
       >

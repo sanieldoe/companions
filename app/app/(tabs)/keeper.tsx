@@ -736,7 +736,7 @@ export default function WikiScreen() {
               </TouchableOpacity>
             )}
             refreshControl={<RefreshControl refreshing={projectsLoading} onRefresh={fetchProjects} tintColor={theme.textDim} />}
-            ListEmptyComponent={<View style={styles.emptyContainer}><View style={styles.centered}><Text style={[styles.emptyText, { color: theme.textDim }]}>No projects yet{'\n'}Start one in a conversation with {getModeName('mentor', modes)} or {getModeName('shapeshifter', modes)}</Text></View></View>}
+            ListEmptyComponent={<View style={styles.emptyContainer}><View style={styles.centered}><Text style={[styles.emptyText, { color: theme.textDim }]}>No projects yet{'\n'}Start one in a conversation with {getModeName('mentor', modes)} or {getModeName('shapeshifter', modes)}</Text><TouchableOpacity onPress={() => router.replace('/(tabs)/mentor')} style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10, backgroundColor: BUZZ_ACCENT }}><Text style={{ fontFamily: 'DMSans_700Bold', fontSize: 14, color: '#000' }}>+ New Project</Text></TouchableOpacity></View></View>}
             contentContainerStyle={projectsData.length === 0 ? styles.emptyContainer : styles.listPad}
           />
         )
@@ -1178,7 +1178,9 @@ export default function WikiScreen() {
                       });
                       setAskSaved(true);
                       setTimeout(() => setAskSaved(false), 3000);
-                    } catch {}
+                    } catch (err: any) {
+                      Alert.alert("Couldn't save", err?.message ?? 'Please try again.');
+                    }
                   }}
                   activeOpacity={0.8}
                 >

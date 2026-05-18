@@ -598,7 +598,7 @@ export default function RuseScreen() {
                 This canvas is empty
               </Text>
               <Text style={[styles.emptyHint, { color: theme.textFaint }]}>
-                Talk to {getModeName('mentor', modes)} to start building this space.{'\n'}
+                Start a conversation to build this canvas.{'\n'}
                 {projectName !== 'Inbox' ? `Current project: ${projectName}` : 'No project selected.'}
               </Text>
             </View>

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { getItem, setItem, deleteItem } from '../lib/storage';
@@ -16,6 +17,26 @@ import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
 
 const ACCENT = '#4CAF50';
+
+function friendlyError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes('401') || lower.includes('bad secret') || lower.includes('auth failed')) {
+    return 'Wrong secret key. Check the key shown in your server dashboard.';
+  }
+  if (
+    lower.includes('econnrefused') ||
+    lower.includes('fetch failed') ||
+    lower.includes('network') ||
+    lower.includes('enotfound') ||
+    lower.includes('timeout')
+  ) {
+    return "Couldn't reach the server. Make sure you're on the same network (or Tailscale) and the address is correct.";
+  }
+  if (lower.includes('invalid url') || lower.includes('url')) {
+    return 'Invalid server address. It should look like http://192.168.1.x:3000';
+  }
+  return `Connection failed: ${raw}`;
+}
 
 export default function SetupScreen() {
   const [serverUrl, setServerUrl] = useState('');
@@ -25,6 +46,14 @@ export default function SetupScreen() {
 
   const setCredentials = useStore((s) => s.setCredentials);
   const theme = useTheme();
+
+  function handleScanQR() {
+    Alert.alert(
+      'Scan QR Code',
+      'Open your server dashboard and tap the QR code to launch the app automatically, or copy the address and secret key manually.',
+      [{ text: 'OK' }],
+    );
+  }
 
   async function handleConnect() {
     setError(null);
@@ -71,7 +100,7 @@ export default function SetupScreen() {
 
       if (!response.ok) {
         const body = await response.text();
-        setError(`Auth failed: ${response.status} ${body}`);
+        setError(friendlyError(`Auth failed: ${response.status} ${body}`));
         return;
       }
 
@@ -92,7 +121,7 @@ export default function SetupScreen() {
       router.replace('/');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setError(`Could not connect to ${authUrl}\n${msg}`);
+      setError(friendlyError(msg));
     } finally {
       setLoading(false);
     }
@@ -110,13 +139,32 @@ export default function SetupScreen() {
         <Text style={[styles.title, { color: theme.text }]}>Companion</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>Connect to your server</Text>
 
+        <Text style={[styles.description, { color: theme.textDim }]}>
+          Connect to your Companion server to get started.{'\n'}
+          Scan the QR code from your server's dashboard, or enter the address and secret key manually.
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.qrButton, { borderColor: ACCENT }]}
+          onPress={handleScanQR}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.qrButtonText, { color: ACCENT }]}>Scan QR code</Text>
+        </TouchableOpacity>
+
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.textFaint }]} />
+          <Text style={[styles.dividerLabel, { color: theme.textFaint }]}>or enter manually</Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.textFaint }]} />
+        </View>
+
         <View style={styles.field}>
           <Text style={[styles.label, { color: theme.textDim }]}>Server address</Text>
           <TextInput
             style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text }]}
             value={serverUrl}
             onChangeText={setServerUrl}
-            placeholder="192.168.x.x:3000 or wss://host"
+            placeholder="e.g. http://192.168.1.100:3000"
             placeholderTextColor={theme.textFaint}
             autoCapitalize="none"
             autoCorrect={false}
@@ -130,7 +178,7 @@ export default function SetupScreen() {
             style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text }]}
             value={secret}
             onChangeText={setSecret}
-            placeholder="••••••••"
+            placeholder="From your server dashboard"
             placeholderTextColor={theme.textFaint}
             secureTextEntry
             autoCapitalize="none"
@@ -175,7 +223,38 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 4,
+  },
+  description: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  qrButton: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrButtonText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 16,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    opacity: 0.4,
+  },
+  dividerLabel: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
   },
   field: {
     gap: 6,

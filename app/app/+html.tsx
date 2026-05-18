@@ -13,7 +13,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
           __html: `
             html, body { height: 100%; margin: 0; padding: 0; background: #0D0B08; }
             body { overflow: hidden; }
-            #root { display: flex; height: 100%; flex: 1; zoom: 1.6; }
+            #root { display: flex; height: 100%; flex: 1; }
           `
         }} />
       </head>

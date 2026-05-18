@@ -4,10 +4,10 @@ import { ModeInfo, MODE_EMOJIS, MODE_ACCENTS, useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
 
 const FALLBACK_MODES: ModeInfo[] = [
-  { id: 'mentor',       name: 'Sage',   emoji: '🐸', accent: MODE_ACCENTS['mentor'],       mascot: 'frog' },
-  { id: 'shapeshifter', name: 'Creato', emoji: '🦊', accent: MODE_ACCENTS['shapeshifter'], mascot: 'fox'  },
-  { id: 'keeper',       name: 'Loom',   emoji: '🐝', accent: MODE_ACCENTS['keeper'],       mascot: 'bee'  },
-  { id: 'tracker',      name: 'Tick',   emoji: '🐦', accent: MODE_ACCENTS['tracker'],      mascot: 'bird' },
+  { id: 'mentor',       name: 'Mentor',       emoji: '🐢', accent: MODE_ACCENTS['mentor'],       mascot: 'frog' },
+  { id: 'shapeshifter', name: 'Shapeshifter', emoji: '🦞', accent: MODE_ACCENTS['shapeshifter'], mascot: 'fox'  },
+  { id: 'keeper',       name: 'Keeper',       emoji: '🐝', accent: MODE_ACCENTS['keeper'],       mascot: 'bee'  },
+  { id: 'tracker',      name: 'Tracker',      emoji: '🐙', accent: MODE_ACCENTS['tracker'],      mascot: 'bird' },
 ];
 
 function Pill({ mode, isActive, onPress }: { mode: ModeInfo; isActive: boolean; onPress: () => void }) {

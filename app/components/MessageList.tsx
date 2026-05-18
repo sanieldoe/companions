@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableWithoutFeedback, ToastAndroid, Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import Markdown from 'react-native-markdown-display';
@@ -31,6 +31,14 @@ export default function MessageList({ messages, streamingText, accent, agentStat
   const modes = useStore(s => s.modes);
 
   const showTyping = agentState === 'thinking' && streamingText.length === 0;
+
+  // Debounce streaming text updates to at most every 50ms so Markdown doesn't
+  // re-render on every single token, while still avoiding the end-of-stream snap.
+  const [debouncedText, setDebouncedText] = useState(streamingText);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedText(streamingText), 50);
+    return () => clearTimeout(timer);
+  }, [streamingText]);
 
   const markdownStyles = useMemo(() => ({
     body: { fontSize: 15, lineHeight: 22, fontFamily: 'DMSans_400Regular', color: theme.text },
@@ -94,7 +102,11 @@ export default function MessageList({ messages, streamingText, accent, agentStat
         const isFirst = mi === 0;
         const isUser = msg.role === 'user';
 
-        const isError = !isUser && msg.text.trimStart().startsWith('⚠');
+        const isError = !isUser && (
+          (msg as any).isError === true ||
+          msg.text.trimStart().startsWith('⚠') ||
+          msg.text.includes('[error]')
+        );
         const assistantBorderColor = isError
           ? '#E53935'
           : (!isUser && msg.persona ? (MODE_ACCENTS[msg.persona] ?? 'transparent') : 'transparent');
@@ -162,7 +174,7 @@ export default function MessageList({ messages, streamingText, accent, agentStat
       {!showTyping && streamingText.length > 0 && (
         <View key="streaming" style={[styles.bubbleWrapper, styles.wrapperAssistant]}>
           <View style={[styles.bubble, styles.assistantBubble, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.bubbleText, { color: theme.text }]}>{streamingText}</Text>
+            <Markdown style={markdownStyles}>{debouncedText}</Markdown>
           </View>
         </View>
       )}

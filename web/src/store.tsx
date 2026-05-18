@@ -5,7 +5,7 @@ import { apiFetch } from './api'
 export type { ConversationMeta }
 
 export const ACCENTS: Record<string, string> = { mentor: '#4CAF50', shapeshifter: '#FF6135', keeper: '#FFD54F', tracker: '#42A5F5' }
-export const EMOJIS: Record<string, string> = { mentor: '🐸', shapeshifter: '🦊', keeper: '🐝', tracker: '🐦' }
+export const EMOJIS: Record<string, string> = { mentor: '🐢', shapeshifter: '🦞', keeper: '🐝', tracker: '🐙' }
 export const NAMES: Record<string, string> = { mentor: 'Mentor', shapeshifter: 'Shapeshifter', keeper: 'Keeper', tracker: 'Tracker' }
 
 function init(): AppState {

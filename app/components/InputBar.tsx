@@ -4,6 +4,7 @@ import {
   TextInput,
   Text,
   TouchableOpacity,
+  ActivityIndicator,
   Animated,
   StyleSheet,
   Alert,
@@ -15,6 +16,7 @@ export interface AttachedFile {
   name: string;
   content: string;
   mime: string;
+  size?: string;
 }
 
 interface InputBarProps {
@@ -27,19 +29,32 @@ interface InputBarProps {
 export default function InputBar({ accent, isStreaming, onSend, onAbort }: InputBarProps) {
   const [text, setText] = useState('');
   const [file, setFile] = useState<AttachedFile | null>(null);
+  const [isPickingFile, setIsPickingFile] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const canSend = (text.trim().length > 0 || file !== null) && !isStreaming;
   const theme = useTheme();
 
+  function formatBytes(bytes: number): string {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+
   async function handlePickFile() {
+    setIsPickingFile(true);
     try {
       const picked = await pickFile();
       if (!picked) return;
-      setFile({ name: picked.name, content: picked.base64, mime: picked.mimeType });
+      const approxBytes = picked.base64.length * 0.75;
+      const size = formatBytes(approxBytes);
+      setFile({ name: picked.name, content: picked.base64, mime: picked.mimeType, size });
     } catch (err: any) {
       const message = err?.message ?? String(err);
       console.error('[InputBar] pickFile failed:', err);
       Alert.alert("Couldn't attach file", message || 'Something went wrong reading the file.');
+    } finally {
+      setIsPickingFile(false);
     }
   }
 
@@ -55,7 +70,7 @@ export default function InputBar({ accent, isStreaming, onSend, onAbort }: Input
       {file && (
         <View style={[styles.fileChip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.fileChipText, { color: theme.text }]} numberOfLines={1}>
-            📄 {file.name}
+            📄 {file.name}{file.size ? ` · ${file.size}` : ''}
           </Text>
           <TouchableOpacity onPress={() => setFile(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={[styles.fileChipRemove, { color: theme.textDim }]}>✕</Text>
@@ -63,8 +78,12 @@ export default function InputBar({ accent, isStreaming, onSend, onAbort }: Input
         </View>
       )}
       <View style={styles.inputRow}>
-        <TouchableOpacity style={styles.attachBtn} onPress={handlePickFile} disabled={isStreaming}>
-          <Text style={[styles.attachIcon, { color: file ? accent : theme.textDim }]}>⊕</Text>
+        <TouchableOpacity style={styles.attachBtn} onPress={handlePickFile} disabled={isStreaming || isPickingFile}>
+          {isPickingFile ? (
+            <ActivityIndicator size="small" color={theme.textDim} />
+          ) : (
+            <Text style={[styles.attachIcon, { color: file ? accent : theme.textDim }]}>⊕</Text>
+          )}
         </TouchableOpacity>
         <TextInput
           ref={inputRef}
