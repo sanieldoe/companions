@@ -361,7 +361,7 @@ async function buildChatSession(convId: string, slug: string): Promise<AgentSess
 
   const convSessionDir = path.join(VAULT_ROOT, "projects", slug, ".sessions", convId);
   fs.mkdirSync(convSessionDir, { recursive: true });
-  const sessionManager = SessionManager.create(convSessionDir);
+  const sessionManager = SessionManager.continueRecent(VAULT_ROOT, convSessionDir);
   const model = resolveModel(CHAT_SESSION_MODE);
   const { session } = await createAgentSessionFromServices({
     services,
@@ -426,7 +426,13 @@ function bootstrapSessionFromVault(convId: string, slug: string): void {
   for (const msg of turns) {
     const id = crypto.randomUUID().slice(0, 8);
     const ts = msg.timestamp ? new Date(msg.timestamp).toISOString() : now;
-    entries.push({ type: 'message', id, parentId: prevId, timestamp: ts, message: { role: msg.role, content: [{ type: 'text', text: msg.text }] } });
+    const message: Record<string, unknown> = { role: msg.role, content: [{ type: 'text', text: msg.text }] };
+    if (msg.role === 'assistant') {
+      // SDK's _checkCompaction reads usage.totalTokens before each prompt() — provide zeros to avoid crash
+      message.stopReason = 'end_turn';
+      message.usage = { totalTokens: 0, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+    }
+    entries.push({ type: 'message', id, parentId: prevId, timestamp: ts, message });
     prevId = id;
   }
 
