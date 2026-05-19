@@ -532,11 +532,20 @@ export function createAdminRouter(): Router {
         send("Installing server dependencies…");
         await run("npm install --prefer-offline", path.join(repoRoot, "server"));
 
+        send("Installing web dependencies…");
+        await run("npm install --prefer-offline", path.join(repoRoot, "web"));
+
+        send("Installing app dependencies…");
+        await run("npm install --prefer-offline", path.join(repoRoot, "app"));
+
         send("Building server…");
         await run("npm run build", path.join(repoRoot, "server"));
 
         send("Building web dashboard…");
         await run("npm run build", path.join(repoRoot, "web"));
+
+        send("Building Expo web app…");
+        await run("npm run build", path.join(repoRoot, "app"));
 
         send("Restarting server…");
         const uid = process.getuid?.() ?? 501;

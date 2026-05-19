@@ -14,11 +14,15 @@ Companions is meant to run on hardware you control: a laptop, mini PC, NAS, or h
 
 ```bash
 git clone https://github.com/sandoe/companions.git
-cd companions/server
-npm install
+cd companions/server && npm install
+cd ../web && npm install
+cd ../app && npm install
+cd ../server
 npm run setup
 npm start
 ```
+
+Then open `http://localhost:3000/install`.
 
 ## Keep it running
 
@@ -118,7 +122,6 @@ The important pieces are usually:
 
 - your vault directory
 - `server/.env`
-- `companions.config.json`
 - optionally `server/data/tokens.json`
 
 ## Upgrades
@@ -131,6 +134,7 @@ git pull
 cd server && npm install
 cd ../app && npm install
 cd ../web && npm install
+cd ../server && npm run setup
 ```
 
 Then restart the server process.

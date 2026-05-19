@@ -184,15 +184,61 @@ Plain markdown. No database. Open any file in any editor.
 curl -fsSL https://raw.githubusercontent.com/sanieldoe/companions/main/install.sh | bash
 ```
 
-Requires Node ≥ 20, `git`, and `npm`. Clones the repo, installs dependencies, and opens the setup wizard in your browser. The wizard covers vault path, your name, server secret, LLM provider, persona names, and optional Google Calendar.
+Requires Node ≥ 20, `git`, and `npm`. Clones the repo, installs dependencies, and builds the server, dashboard, and Expo web app. Then start the server and open the setup wizard in your browser. The wizard covers vault path, your name, server secret, LLM provider, persona names, and optional Google Calendar.
 
 **Manual:**
 ```bash
 git clone https://github.com/sanieldoe/companions.git
-cd companions/server && npm install && npm run build && npm start
+cd companions/server && npm install
+cd ../web && npm install
+cd ../app && npm install
+cd ../server && npm run setup && npm start
 ```
 
 Then open `http://localhost:3000/install`.
+
+---
+
+## Setup wizard
+
+<p align="center">
+  <img src="docs/screenshots/setup.png" alt="Companions setup wizard" width="720">
+</p>
+
+The first-run wizard at `/install` gets the server into a usable state without hand-editing config files.
+
+- **Vault path** — points Companions at an existing vault or creates a fresh one with the required folders
+- **Identity + auth** — stores your name and server secret
+- **Model setup** — sets the default local or cloud model and any provider credentials you need
+- **Personas** — rename the four companions and pick their emoji before first use
+- **Google Calendar** — optional OAuth setup for Tracker
+- **Pairing** — once the server is configured, the dashboard exposes the pairing URL, QR code, and deep link for the mobile app
+
+What it produces:
+
+- a ready server `.env`
+- a usable vault structure
+- persona files updated with your chosen names and emoji
+- the hosted routes for `/install`, `/dashboard`, and `/app`
+
+## Dashboard
+
+<table>
+<tr>
+<td width="420" valign="top"><img src="docs/screenshots/dashboard.png" alt="Companions dashboard" width="400"></td>
+<td valign="top">
+
+The dashboard at `/dashboard` is the control surface after setup. It is separate from the chat UI and is meant for server administration, model changes, and maintenance.
+
+- **Personas** — rename each persona, swap emoji, and edit the underlying prompt text
+- **Models** — connect providers, store API keys, choose a default model, and override models per persona
+- **Vault** — inspect vault stats, change the vault path, and run backups
+- **Logs** — watch the live server log stream in the browser
+- **Setup** — copy connection details, generate QR/deep links for pairing, inspect version info, and run in-place updates
+
+</td>
+</tr>
+</table>
 
 ---
 

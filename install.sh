@@ -124,12 +124,13 @@ run_in "$INSTALL_DIR/server" npm install
 run_in "$INSTALL_DIR/app" npm install
 run_in "$INSTALL_DIR/web" npm install
 
-phase "Run setup"
+phase "Build setup assets"
 if [[ "$SKIP_SETUP" == "1" ]]; then
-  echo "Skipping setup because COMPANIONS_SKIP_SETUP=1"
+  echo "Skipping asset build because COMPANIONS_SKIP_SETUP=1"
 else
   run_in "$INSTALL_DIR/server" npm run setup
 fi
 
 phase "Done"
 echo "To start: cd $INSTALL_DIR/server && npm start"
+echo "Then open: http://localhost:3000/install"

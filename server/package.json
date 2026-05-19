@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "setup": "node scripts/setup.mjs",
     "start": "tsc && node dist/index.js",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",

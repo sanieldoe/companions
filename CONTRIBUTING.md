@@ -14,8 +14,6 @@ cd companions
 
 # Server
 cd server && npm install
-cp .env.example .env   # fill in at least one LLM provider
-npm run setup          # interactive TUI — creates companions.config.json
 
 # Web app
 cd ../web && npm install
@@ -23,7 +21,11 @@ npm run dev            # Vite dev server at http://localhost:5173
 
 # Mobile app (requires Expo CLI)
 cd ../app && npm install
+npm run build          # exports the Expo web build used by the server
 npx expo start
+
+# Build server + browser assets used by /install, /dashboard, and /app
+cd ../server && npm run setup
 ```
 
 Start the server with `cd server && npm start` (or `npm run dev` for hot-reload via tsx).
@@ -77,13 +79,13 @@ CI runs all three on every PR. Don't open a PR with type errors.
 
 ## Testing
 
-There are no automated tests yet — this is listed in the roadmap. If you add a new module (especially in `server/src/setup/`), please include unit tests in a `*.test.ts` file alongside the module.
+There are no automated tests yet — this is listed in the roadmap.
 
 ---
 
 ## Adding a provider
 
-See `server/src/models.ts`. Add the new provider ID, configure its credential prompts in `server/src/setup.ts` (Screen 2), and update `server/.env.example`.
+See `server/src/models.ts` and the install/dashboard flows under `server/src/install.ts` and `web/src/dashboard/`. Add the new provider ID and update any required environment variable documentation.
 
 ---
 

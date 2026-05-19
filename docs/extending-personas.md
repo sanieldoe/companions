@@ -9,27 +9,24 @@ Companions ships with **exactly four personas**:
 
 For normal users, the supported customization path is:
 
-- rename each persona during `npm run setup`
-- choose a different emoji during `npm run setup`
+- rename each persona during the browser setup wizard
+- choose a different emoji during the browser setup wizard or from the dashboard
 
 That changes the **display layer**, not the internal persona keys.
 
 ## What you can change without forking
 
-The setup wizard writes `companions.config.json` like this:
+The setup wizard stores persona display settings in the persona files themselves. A default persona file starts like this:
 
-```json
-{
-  "personas": {
-    "mentor": { "displayName": "Mentor", "emoji": "🐸", "slot": 0 },
-    "shapeshifter": { "displayName": "Shapeshifter", "emoji": "🦊", "slot": 1 },
-    "keeper": { "displayName": "Keeper", "emoji": "🐝", "slot": 2 },
-    "tracker": { "displayName": "Tracker", "emoji": "🐦", "slot": 3 }
-  }
-}
+```md
+---
+name: Mentor
+emoji: 🐢
+description: Patient, grounded, one step at a time.
+---
 ```
 
-You can safely re-run setup to rename them.
+You can safely revisit the setup wizard or dashboard to rename them.
 
 ## Rewriting a persona prompt
 
@@ -55,13 +52,9 @@ You need to update every place where persona keys or tab count are assumed.
 
 At minimum, inspect and update these files:
 
-- `server/src/setup.ts`
+- `server/src/install.ts`
   - fixed persona defaults
-  - emoji/name prompts
-  - config writing
-  - persona file generation
-- `server/src/config.ts`
-  - persona config typing and defaults
+  - install-time name and emoji handling
 - `server/src/routes.ts`
   - mode metadata
   - `/personas` output

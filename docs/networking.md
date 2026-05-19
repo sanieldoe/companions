@@ -37,7 +37,7 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
 ```
 
-Once connected, rerun `npm run setup` if you want Companions to store the Tailscale hostname in `companions.config.json`.
+Once connected, open the setup wizard or dashboard again if you want Companions to use the Tailscale hostname for remote access.
 
 ## Alternative: plain LAN
 
@@ -87,11 +87,11 @@ If you want HTTPS later, you can front the server with your preferred reverse pr
 
 ## Ports
 
-The default server port is `3000`. You can change this during `npm run setup`.
+The default server port is `3000`. You can change this with the `PORT` environment variable before starting the server.
 
 If mobile pairing fails:
 
 - make sure the server is running
 - confirm the host and port match the setup summary
-- test `http://<host>:<port>/api/health`
-- confirm your token is valid with `npm run token:list`
+- test `http://<host>:<port>/ping`
+- confirm you can load `http://<host>:<port>/install` or `http://<host>:<port>/dashboard`
