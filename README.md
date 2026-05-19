@@ -91,9 +91,9 @@ Two agents, one shared space. They're opposites by design — Mentor slows you d
 
 The Chat tab lets you talk to either. Switch between them at any point.
 
-**Mentor** asks the right question before touching anything. One step at a time, one next action per response, `Step X of Y` progress markers. Canvas only when you ask.
+**Mentor** One step at a time, one next action per response,Canvas only when you ask.
 
-**Shapeshifter** infers your intent and acts. States one assumption in a line, then builds. Pivots fast if the read was off.
+**Shapeshifter** infers your intent and acts. States one assumption in a line, then builds.
 
 </td>
 </tr>
